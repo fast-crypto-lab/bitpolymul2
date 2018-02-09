@@ -336,6 +336,31 @@ uint64_t bitmatrix_prod_64x64_M4R( const uint64_t * mat4r , uint64_t a )
 
 
 static inline
+void mat_mul_64x64_64x64_m4r( uint64_t * r , const uint64_t *mat4r , uint64_t * a )
+{
+	for(unsigned i=0;i<64;i++) r[i] = bitmatrix_prod_64x64_M4R( mat4r , a[i] );
+}
+
+static inline
+uint64_t bitmatrix_prod_64x64_M8R( const uint64_t * mat4r , uint64_t a )
+{
+	uint64_t r = 0;
+	while( a ) {
+		r ^= mat4r[ a&0xff ];
+		mat4r += 256;
+		a >>= 8;
+	}
+	return r;
+}
+
+static inline
+void mat_mul_64x64_64x64_m8r( uint64_t * r , const uint64_t *mat4r , uint64_t * a )
+{
+	for(unsigned i=0;i<64;i++) r[i] = bitmatrix_prod_64x64_M8R( mat4r , a[i] );
+}
+
+
+static inline
 void bitmatrix_prod_64x64_4R_b32_avx2( uint8_t * r128_32 , const uint64_t * matB4R , const uint8_t *a64_32 )
 {
 	uint8_t t32[32*8] __attribute__((aligned(32)));
@@ -362,6 +387,14 @@ void bitmatrix_prod_64x64_4R_b32_avx2( uint8_t * r128_32 , const uint64_t * matB
 	}
 
 	tr_8x8_b4_avx2( r128_32 , r128_32 , 32 );
+}
+
+
+static inline
+void mat_mul_64x64_64x64_m4r_avx2( uint8_t * r , const uint64_t *mat4r , uint8_t * a )
+{
+	bitmatrix_prod_64x64_4R_b32_avx2( r , mat4r , a );
+	bitmatrix_prod_64x64_4R_b32_avx2( r+8*32 , mat4r , a+8*32 );
 }
 
 

@@ -445,33 +445,59 @@ void bc_to_mono_128( bc_sto_t * poly , unsigned n_terms )
 //////////////////////////////////////////////
 
 
+static inline
+void __xor_down_256( __m256i * poly , unsigned dest_idx , unsigned src_idx , unsigned len )
+{
+	for(unsigned i=len;i>0;){
+		i--;
+		poly[dest_idx+i] ^= poly[src_idx+i];
+	}
+}
 
-
+static inline
+void __xor_up_256( __m256i * poly , unsigned dest_idx , unsigned src_idx , unsigned len )
+{
+	for(unsigned i=0;i<len;i++){
+		poly[dest_idx+i] ^= poly[src_idx+i];
+	}
+}
 
 
 static inline
 void xor_down_256( __m256i * poly , unsigned st , unsigned len , unsigned diff )
 {
-#if 1
-	for( unsigned i=0;i<len;i++) {
-		poly[st-i-1] ^= poly[st-i-1+diff];
-	}
-#else
-	if( ((unsigned long)(poly+st)) & 31 ) {
-		poly[st-1] ^= poly[st+diff-1];
-		st--;
-		len--;
-	}
-	__m256i * poly256 = (__m256i*)(poly+st);
-	unsigned _len = len>>1;
-	for( unsigned i=0;i<_len;i++ ) {
-		*(poly256 - i-1) ^= _mm256_loadu_si256( (__m256i*)(poly+st+diff-(i*2)-2) );
-	}
-	if( len&1 ) {
-		poly[st-len] ^= poly[st-len+diff];
-	}
-#endif
+	unsigned dest_st = st - len;
+	unsigned src_st = st - len + diff;
+	__xor_down_256( poly , dest_st , src_st , len );
+//	for( unsigned i=0;i<len;i++) {
+//		poly[st-i-1] ^= poly[st-i-1+diff];
+//	}
 }
+
+static inline
+void __xor_down_256_2( __m256i * poly , unsigned len , unsigned l_st ){
+	__xor_down_256( poly , l_st , len , len );
+//	for( int i=len-1;i>=0;i--) poly[l_st+i] ^= poly[len+i];
+}
+
+static inline
+void xor_up_256( __m256i * poly , unsigned st , unsigned len , unsigned diff )
+{
+	__xor_up_256( poly , st , diff + st , len );
+//	for( unsigned i=0;i<len;i++) {
+//		poly[st+i] ^= poly[st+i+diff];
+//	}
+}
+
+static inline
+void __xor_up_256_2( __m256i * poly , unsigned len , unsigned l_st ){
+	__xor_up_256( poly , l_st , len , len );
+//	for( unsigned i=0;i<len;i++) poly[l_st+i] ^= poly[len+i];
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////
 
 
 
@@ -540,30 +566,6 @@ void bc_to_lch_256( bc_sto_t * poly , unsigned n_terms )
 ///////////////////////////////////
 
 
-static inline
-void xor_up_256( __m256i * poly , unsigned st , unsigned len , unsigned diff )
-{
-#if 1
-	for( unsigned i=0;i<len;i++) {
-		poly[st+i] ^= poly[st+i+diff];
-	}
-#else
-	if( ((unsigned long)(poly+st)) & 31 ) {
-		poly[st] ^= poly[st+diff];
-		st++;
-		len--;
-	}
-	__m256i * poly256 = (__m256i*)(poly+st);
-	unsigned _len = len>>1;
-	for( unsigned i=0;i<_len;i++ ) {
-		poly256[i] ^= _mm256_loadu_si256( (__m256i*)(poly+st+diff+(i*2)) );
-	}
-	if( len&1 ) {
-		poly[st+len-1] ^= poly[st+len-1+diff];
-	}
-#endif
-}
-
 
 static inline
 void i_poly_div_256( __m256i * poly , unsigned n_terms , unsigned blk_size , unsigned si , unsigned pow )
@@ -573,15 +575,7 @@ void i_poly_div_256( __m256i * poly , unsigned n_terms , unsigned blk_size , uns
 	unsigned deg_diff = si_degree - pow;
 	unsigned deg_blk = get_num_blocks( n_terms , blk_size ) -1;
 
-#if 1
 	xor_up_256( poly , blk_size*(si_degree-deg_diff) , (deg_blk-si_degree+1)*blk_size , deg_diff*blk_size );
-#else
-	for(unsigned i=si_degree;i<=deg_blk;i++) {
-		for(unsigned j=0; j<blk_size ;j++) {
-			poly[(i-deg_diff)*blk_size+j] ^= poly[i*blk_size+j];
-		}
-	}
-#endif
 }
 
 static inline
@@ -760,10 +754,6 @@ void __sh_xor_down( __m256i* poly256 , unsigned unit , unsigned _op , __m256i ze
 }
 
 
-static inline
-void __xor_down_256_2( __m256i * poly , unsigned len , unsigned l_st ){
-	for( int i=len-1;i>=0;i--) poly[l_st+i] ^= poly[len+i];
-}
 
 static
 void varsub_x256( __m256i* poly256 , unsigned n_256 )
@@ -801,10 +791,6 @@ void __sh_xor_up( __m256i* poly256 , unsigned unit , unsigned _op , __m256i zero
 }
 
 
-static inline
-void __xor_up_256_2( __m256i * poly , unsigned len , unsigned l_st ){
-	for( unsigned i=0;i<len;i++) poly[l_st+i] ^= poly[len+i];
-}
 
 static
 void i_varsub_x256( __m256i* poly256 , unsigned n_256 )
