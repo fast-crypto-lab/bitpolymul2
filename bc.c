@@ -21,6 +21,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
+#define BC_CODE_GEN
 
 static inline
 unsigned get_num_blocks( unsigned poly_len , unsigned blk_size ) {
@@ -63,8 +64,13 @@ unsigned get_max_si( unsigned deg ) {
 #include <emmintrin.h>
 #include <immintrin.h>
 
+#include "bc_to_mono_gen_code.c"
+#include "bc_to_lch_gen_code.c"
 
 
+#define LOG2(X) ((unsigned) (8*sizeof (unsigned long long) - __builtin_clzll((X)) - 1))
+#define MAX(x,y) (((x)>(y))?(x):(y))
+#define MIN(x,y) (((x)<(y))?(x):(y))
 
 static inline
 void xor_down( bc_sto_t * poly , unsigned st , unsigned len , unsigned diff )
@@ -543,6 +549,7 @@ void represent_in_si_256( __m256i * poly , unsigned n_terms , unsigned blk_size 
 
 void _bc_to_lch_256( __m256i * poly , unsigned n_terms , unsigned blk_size )
 {
+
 	unsigned num_blocks = get_num_blocks( n_terms , blk_size );
 	if( 2 >= num_blocks ) return;
 	unsigned degree_in_blocks = num_blocks - 1;
@@ -824,7 +831,18 @@ void bc_to_lch_2_unit256( bc_sto_t * poly , unsigned n_terms )
 	unsigned n_256 = n_terms>>2;
 
 	varsub_x256( poly256 , n_256 );
+#ifdef BC_CODE_GEN
+        int logn = LOG2(n_256);
+        bc_to_lch_256_30_12(poly256,logn);
+        for(int i=0;i<(1<<(MAX(0,logn-19)));++i){
+            bc_to_lch_256_19_17(poly256+i*(1<<19),MIN(19,logn));
+        }
+        for(int i=0;i<(1<<(MAX(0,logn-16)));++i){
+	    bc_to_lch_256_16(poly256+i*(1<<16), MIN(16,logn));
+        }
+#else
 	_bc_to_lch_256( poly256 , n_256 , 1 );
+#endif
 }
 
 
@@ -836,7 +854,18 @@ void bc_to_mono_2_unit256( bc_sto_t * poly , unsigned n_terms )
 	__m256i * poly256 = (__m256i*) poly;
 	unsigned n_256 = n_terms>>2;
 
+#ifdef BC_CODE_GEN
+        int logn = LOG2(n_256);
+        for(int i=0;i<(1<<(MAX(0,logn-16)));++i){
+	    bc_to_mono_256_16(poly256+i*(1<<16), MIN(16,logn));
+        }
+        for(int i=0;i<(1<<(MAX(0,logn-19)));++i){
+            bc_to_mono_256_19_17(poly256+i*(1<<19),MIN(19,logn));
+        }
+        bc_to_mono_256_30_20(poly256,logn);
+#else
 	_bc_to_mono_256( poly256 , n_256 , 1 );
+#endif
 	i_varsub_x256( poly256 , n_256 );
 }
 
