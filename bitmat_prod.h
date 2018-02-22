@@ -275,7 +275,7 @@ void bitmatrix_prod_64x128_4R_b32_opt_avx2( uint8_t * r128_32 , const uint64_t *
 {
 	uint8_t t32[32*8] __attribute__((aligned(32)));
 	/// 0x10,0x11,0x12,.....0x2f
-	tr_8x8_b4_avx2( t32 , a64_32 , 32 );
+	transpose_8x8_b4_avx2( t32 , a64_32 );
 	/// bitsliced: 0x10,0x14,0x18,0x1c, 0x20,0x24,0x28,0x2c, 0x11,0x15,0x19,0x1d, 0x21,0x25,0x29,0x2d, |
 	///            0x12,0x16,0x1a,0x1e, 0x22,0x26,0x2a,0x2e, 0x13,0x17,0x1b,0x1f, 0x23,0x27,0x2b,0x2f,
 
@@ -365,7 +365,7 @@ void bitmatrix_prod_64x64_4R_b32_avx2( uint8_t * r128_32 , const uint64_t * matB
 {
 	uint8_t t32[32*8] __attribute__((aligned(32)));
 	/// 0x10,0x11,0x12,.....0x2f
-	tr_8x8_b4_avx2( t32 , a64_32 , 32 );
+	transpose_8x8_b4_avx2( t32 , a64_32 );
 	/// bitsliced: 0x10,0x14,0x18,0x1c, 0x20,0x24,0x28,0x2c, 0x11,0x15,0x19,0x1d, 0x21,0x25,0x29,0x2d, |
 	///            0x12,0x16,0x1a,0x1e, 0x22,0x26,0x2a,0x2e, 0x13,0x17,0x1b,0x1f, 0x23,0x27,0x2b,0x2f,
 
@@ -386,7 +386,117 @@ void bitmatrix_prod_64x64_4R_b32_avx2( uint8_t * r128_32 , const uint64_t * matB
 		}
 	}
 
-	tr_8x8_b4_avx2( r128_32 , r128_32 , 32 );
+	transpose_8x8_b4_avx2( r128_32 , r128_32 );
+}
+
+static inline
+void bitmatrix_prod_64x64_4R_b64_avx2( uint8_t * r128_32 , const uint64_t * matB4R , const uint8_t *a64_32 )
+{
+#if 0
+	bitmatrix_prod_64x64_4R_b32_avx2( r128_32 , matB4R , a64_32 );
+	bitmatrix_prod_64x64_4R_b32_avx2( r128_32+8*32 , matB4R , a64_32+8*32 );
+#else
+	uint8_t t32[32*8] __attribute__((aligned(32)));
+	uint8_t u32[32*8] __attribute__((aligned(32)));
+
+	/// 0x10,0x11,0x12,.....0x2f
+	transpose_8x8_b4_avx2( t32 , a64_32 );
+	transpose_8x8_b4_avx2( u32 , a64_32+8*32 );
+	/// bitsliced: 0x10,0x14,0x18,0x1c, 0x20,0x24,0x28,0x2c, 0x11,0x15,0x19,0x1d, 0x21,0x25,0x29,0x2d, |
+	///            0x12,0x16,0x1a,0x1e, 0x22,0x26,0x2a,0x2e, 0x13,0x17,0x1b,0x1f, 0x23,0x27,0x2b,0x2f,
+
+	const __m256i * tab = (const __m256i*) & matB4R[0];
+	__m256i _0xf = _mm256_set1_epi8(0xf);
+
+	__m256i r0 = _mm256_setzero_si256();
+	__m256i r1 = _mm256_setzero_si256();
+	__m256i r2 = _mm256_setzero_si256();
+	__m256i r3 = _mm256_setzero_si256();
+	__m256i r4 = _mm256_setzero_si256();
+	__m256i r5 = _mm256_setzero_si256();
+	__m256i r6 = _mm256_setzero_si256();
+	__m256i r7 = _mm256_setzero_si256();
+	for(unsigned i=0;i<8;i++) { ///
+		__m256i temp = _mm256_load_si256( (__m256i*)(t32 + i*32) );
+		__m256i _0_low1_low0 = temp&_0xf;
+		__m256i _0_high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  temp ) , 4 );
+
+		__m256i temp1 = _mm256_load_si256( (__m256i*)(u32 + i*32) );
+		__m256i _1_low1_low0 = temp1&_0xf;
+		__m256i _1_high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  temp1 ) , 4 );
+
+		__m256i tab_0 = tab[i*16];
+		__m256i tab_1 = tab[i*16+1];
+		r0 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r4 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+		tab_0 = tab[i*16+2];
+		tab_1 = tab[i*16+3];
+		r1 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r5 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+		tab_0 = tab[i*16+4];
+		tab_1 = tab[i*16+5];
+		r2 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r6 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+		tab_0 = tab[i*16+6];
+		tab_1 = tab[i*16+7];
+		r3 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r7 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+	}
+	_mm256_store_si256( (__m256i*)(r128_32+0) , r0 );
+	_mm256_store_si256( (__m256i*)(r128_32+1*32) , r1 );
+	_mm256_store_si256( (__m256i*)(r128_32+2*32) , r2 );
+	_mm256_store_si256( (__m256i*)(r128_32+3*32) , r3 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+0*32) , r4 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+1*32) , r5 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+2*32) , r6 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+3*32) , r7 );
+
+	r0 = _mm256_setzero_si256();
+	r1 = _mm256_setzero_si256();
+	r2 = _mm256_setzero_si256();
+	r3 = _mm256_setzero_si256();
+	r4 = _mm256_setzero_si256();
+	r5 = _mm256_setzero_si256();
+	r6 = _mm256_setzero_si256();
+	r7 = _mm256_setzero_si256();
+	for(unsigned i=0;i<8;i++) { ///
+		__m256i temp = _mm256_load_si256( (__m256i*)(t32 + i*32) );
+		__m256i _0_low1_low0 = temp&_0xf;
+		__m256i _0_high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  temp ) , 4 );
+
+		__m256i temp1 = _mm256_load_si256( (__m256i*)(u32 + i*32) );
+		__m256i _1_low1_low0 = temp1&_0xf;
+		__m256i _1_high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  temp1 ) , 4 );
+
+		__m256i tab_0 = tab[i*16+8];
+		__m256i tab_1 = tab[i*16+8+1];
+		r0 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r4 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+		tab_0 = tab[i*16+8+2];
+		tab_1 = tab[i*16+8+3];
+		r1 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r5 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+		tab_0 = tab[i*16+8+4];
+		tab_1 = tab[i*16+8+5];
+		r2 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r6 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+		tab_0 = tab[i*16+8+6];
+		tab_1 = tab[i*16+8+7];
+		r3 ^= _mm256_shuffle_epi8( tab_0 , _0_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _0_high1_high0 );
+		r7 ^= _mm256_shuffle_epi8( tab_0 , _1_low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _1_high1_high0 );
+	}
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+0) , r0 );
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+1*32) , r1 );
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+2*32) , r2 );
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+3*32) , r3 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+0*32) , r4 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+1*32) , r5 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+2*32) , r6 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+3*32) , r7 );
+
+	transpose_8x8_b4_avx2( r128_32 , r128_32 );
+	transpose_8x8_b4_avx2( r128_32+8*32 , r128_32+8*32 );
+#endif
 }
 
 
@@ -399,11 +509,11 @@ void mat_mul_64x64_64x64_m4r_avx2( uint8_t * r , const uint64_t *mat4r , uint8_t
 
 
 static inline
-void bitmatrix_prod_32x64_4R_b32_avx2( uint8_t * r128_32 , const uint64_t * matB4R , const uint8_t *a64_32 )
+void bitmatrix_prod_64x64_h32zero_4R_b32_avx2( uint8_t * r128_32 , const uint64_t * matB4R , const uint8_t *a64_32 )
 {
-	uint8_t t32[32*8] __attribute__((aligned(32)));
+	uint8_t t32[32*4] __attribute__((aligned(32)));
 	/// 0x10,0x11,0x12,.....0x2f
-	tr_8x8_b4_avx2( t32 , a64_32 , 32 );
+	transpose_8x8_h4zero_b4_avx2( t32 , a64_32 );
 	/// bitsliced: 0x10,0x14,0x18,0x1c, 0x20,0x24,0x28,0x2c, 0x11,0x15,0x19,0x1d, 0x21,0x25,0x29,0x2d, |
 	///            0x12,0x16,0x1a,0x1e, 0x22,0x26,0x2a,0x2e, 0x13,0x17,0x1b,0x1f, 0x23,0x27,0x2b,0x2f,
 
@@ -424,8 +534,111 @@ void bitmatrix_prod_32x64_4R_b32_avx2( uint8_t * r128_32 , const uint64_t * matB
 		}
 	}
 
-	tr_8x8_b4_avx2( r128_32 , r128_32 , 32 );
+	transpose_8x8_b4_avx2( r128_32 , r128_32 );
 }
+
+
+static inline
+void bitmatrix_prod_64x64_h32zero_4R_b64_avx2( uint8_t * r128_32 , const uint64_t * matB4R , const uint8_t *a64_32 )
+{
+	uint8_t t32[32*8] __attribute__((aligned(32)));
+	transpose_8x8_h4zero_b4_avx2( t32 , a64_32 );
+	transpose_8x8_h4zero_b4_avx2( t32+32*4 , a64_32+32*8 );
+
+	const __m256i * tab = (const __m256i*) & matB4R[0];
+	__m256i _0xf = _mm256_set1_epi8(0xf);
+
+	__m256i r0,r1,r2,r3,r4,r5,r6,r7;
+	r0 = _mm256_setzero_si256();
+	r1 = _mm256_setzero_si256();
+	r2 = _mm256_setzero_si256();
+	r3 = _mm256_setzero_si256();
+	r4 = _mm256_setzero_si256();
+	r5 = _mm256_setzero_si256();
+	r6 = _mm256_setzero_si256();
+	r7 = _mm256_setzero_si256();
+	for(unsigned i=0;i<4;i++) { ///
+		__m256i temp = _mm256_load_si256( (__m256i*)(t32 + i*32) );
+		__m256i low1_low0 = temp&_0xf;
+		__m256i high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  temp ) , 4 );
+
+		__m256i _temp = _mm256_load_si256( (__m256i*)(t32 + 4*32+ i*32) );
+		__m256i _low1_low0 = _temp&_0xf;
+		__m256i _high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  _temp ) , 4 );
+
+		__m256i tab_0 = tab[i*16+0*2];
+		__m256i tab_1 = tab[i*16+0*2+1];
+		r0 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r4 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+		tab_0 = tab[i*16+1*2];
+		tab_1 = tab[i*16+1*2+1];
+		r1 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r5 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+		tab_0 = tab[i*16+2*2];
+		tab_1 = tab[i*16+2*2+1];
+		r2 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r6 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+		tab_0 = tab[i*16+3*2];
+		tab_1 = tab[i*16+3*2+1];
+		r3 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r7 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+	}
+	_mm256_store_si256( (__m256i*)(r128_32+0*32+0) , r0 );
+	_mm256_store_si256( (__m256i*)(r128_32+0*32+1*32) , r1 );
+	_mm256_store_si256( (__m256i*)(r128_32+0*32+2*32) , r2 );
+	_mm256_store_si256( (__m256i*)(r128_32+0*32+3*32) , r3 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+0*32) , r4 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+1*32) , r5 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+2*32) , r6 );
+	_mm256_store_si256( (__m256i*)(r128_32+8*32+3*32) , r7 );
+
+	r0 = _mm256_setzero_si256();
+	r1 = _mm256_setzero_si256();
+	r2 = _mm256_setzero_si256();
+	r3 = _mm256_setzero_si256();
+	r4 = _mm256_setzero_si256();
+	r5 = _mm256_setzero_si256();
+	r6 = _mm256_setzero_si256();
+	r7 = _mm256_setzero_si256();
+	for(unsigned i=0;i<4;i++) { ///
+		__m256i temp = _mm256_load_si256( (__m256i*)(t32 + i*32) );
+		__m256i low1_low0 = temp&_0xf;
+		__m256i high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  temp ) , 4 );
+
+		__m256i _temp = _mm256_load_si256( (__m256i*)(t32 + 4*32+ i*32) );
+		__m256i _low1_low0 = _temp&_0xf;
+		__m256i _high1_high0 = _mm256_srli_epi16( _mm256_andnot_si256( _0xf ,  _temp ) , 4 );
+
+		__m256i tab_0 = tab[i*16+4*2];
+		__m256i tab_1 = tab[i*16+4*2+1];
+		r0 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r4 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+		tab_0 = tab[i*16+5*2];
+		tab_1 = tab[i*16+5*2+1];
+		r1 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r5 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+		tab_0 = tab[i*16+6*2];
+		tab_1 = tab[i*16+6*2+1];
+		r2 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r6 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+		tab_0 = tab[i*16+7*2];
+		tab_1 = tab[i*16+7*2+1];
+		r3 ^= _mm256_shuffle_epi8( tab_0 , low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , high1_high0 );
+		r7 ^= _mm256_shuffle_epi8( tab_0 , _low1_low0 ) ^ _mm256_shuffle_epi8( tab_1 , _high1_high0 );
+	}
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+0) , r0 );
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+1*32) , r1 );
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+2*32) , r2 );
+	_mm256_store_si256( (__m256i*)(r128_32+4*32+3*32) , r3 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+0*32) , r4 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+1*32) , r5 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+2*32) , r6 );
+	_mm256_store_si256( (__m256i*)(r128_32+12*32+3*32) , r7 );
+
+	transpose_8x8_b4_avx2( r128_32 , r128_32 );
+	transpose_8x8_b4_avx2( r128_32+32*8 , r128_32+32*8 );
+}
+
 
 
 

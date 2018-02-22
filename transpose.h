@@ -417,8 +417,149 @@ void tr_8x8_b4_avx2( uint8_t * _r , const uint8_t * a , const uint64_t mem_len )
 }
 
 static inline
-void transpose_8x8_b4( uint8_t * r , const uint8_t * a ) {
-	tr_8x8_b4_avx2(r,a,32);
+void transpose_8x8_b4_avx2( uint8_t * _r , const uint8_t * a ) {
+#if 0
+	tr_8x8_b4_avx2(_r,a,32);
+#else
+	__m256i a0 = _mm256_load_si256( (__m256i*) a );
+	__m256i a1 = _mm256_load_si256( (__m256i*) (a+32*1) );
+	__m256i a2 = _mm256_load_si256( (__m256i*) (a+32*2) );
+	__m256i a3 = _mm256_load_si256( (__m256i*) (a+32*3) );
+	__m256i a4 = _mm256_load_si256( (__m256i*) (a+32*4) );
+	__m256i a5 = _mm256_load_si256( (__m256i*) (a+32*5) );
+	__m256i a6 = _mm256_load_si256( (__m256i*) (a+32*6) );
+	__m256i a7 = _mm256_load_si256( (__m256i*) (a+32*7) );
+
+	__m256i t0,t1,t2,t3;
+	t0 = _mm256_unpacklo_epi32( a0 , a4 );
+	t1 = _mm256_unpackhi_epi32( a0 , a4 );
+	a0 = _mm256_unpacklo_epi64( t0 , t1 );
+	a4 = _mm256_unpackhi_epi64( t0 , t1 );
+
+	t2 = _mm256_unpacklo_epi32( a1 , a5 );
+	t3 = _mm256_unpackhi_epi32( a1 , a5 );
+	a1 = _mm256_unpacklo_epi64( t2 , t3 );
+	a5 = _mm256_unpackhi_epi64( t2 , t3 );
+
+	t0 = _mm256_unpacklo_epi32( a2 , a6 );
+	t1 = _mm256_unpackhi_epi32( a2 , a6 );
+	a2 = _mm256_unpacklo_epi64( t0 , t1 );
+	a6 = _mm256_unpackhi_epi64( t0 , t1 );
+
+	t2 = _mm256_unpacklo_epi32( a3 , a7 );
+	t3 = _mm256_unpackhi_epi32( a3 , a7 );
+	a3 = _mm256_unpacklo_epi64( t2 , t3 );
+	a7 = _mm256_unpackhi_epi64( t2 , t3 );
+
+/// code of 4x4_b8
+	t0 = _mm256_shuffle_epi8( a0 , *(__m256i*)_tr_4x4 ); // 00,01,02,03
+	t1 = _mm256_shuffle_epi8( a1 , *(__m256i*)_tr_4x4 ); // 10,11,12,13
+	t2 = _mm256_shuffle_epi8( a2 , *(__m256i*)_tr_4x4 ); // 20,21,22,23
+	t3 = _mm256_shuffle_epi8( a3 , *(__m256i*)_tr_4x4 ); // 30,31,32,33
+
+	__m256i t01lo = _mm256_unpacklo_epi32( t0 , t1 ); // 00,10,01,11
+	__m256i t01hi = _mm256_unpackhi_epi32( t0 , t1 ); // 02,12,03,13
+	__m256i t23lo = _mm256_unpacklo_epi32( t2 , t3 ); // 20,30,21,31
+	__m256i t23hi = _mm256_unpackhi_epi32( t2 , t3 ); // 22,32,23,33
+
+	__m256i r01lo = _mm256_unpacklo_epi64( t01lo , t23lo ); // 00,10,20,30
+	__m256i r01hi = _mm256_unpackhi_epi64( t01lo , t23lo ); // 01,11,21,31
+	__m256i r23lo = _mm256_unpacklo_epi64( t01hi , t23hi ); // 02,12,22,32
+	__m256i r23hi = _mm256_unpackhi_epi64( t01hi , t23hi ); // 03,13,23,33
+
+	__m256i s0 = _mm256_shuffle_epi8( r01lo , *(__m256i*)_tr_4x4 );
+	__m256i s1 = _mm256_shuffle_epi8( r01hi , *(__m256i*)_tr_4x4 );
+	__m256i s2 = _mm256_shuffle_epi8( r23lo , *(__m256i*)_tr_4x4 );
+	__m256i s3 = _mm256_shuffle_epi8( r23hi , *(__m256i*)_tr_4x4 );
+
+/// repeat 4x4_b8
+	t0 = _mm256_shuffle_epi8( a4 , *(__m256i*)_tr_4x4 ); // 00,01,02,03
+	t1 = _mm256_shuffle_epi8( a5 , *(__m256i*)_tr_4x4 ); // 10,11,12,13
+	t2 = _mm256_shuffle_epi8( a6 , *(__m256i*)_tr_4x4 ); // 20,21,22,23
+	t3 = _mm256_shuffle_epi8( a7 , *(__m256i*)_tr_4x4 ); // 30,31,32,33
+
+	t01lo = _mm256_unpacklo_epi32( t0 , t1 ); // 00,10,01,11
+	t01hi = _mm256_unpackhi_epi32( t0 , t1 ); // 02,12,03,13
+	t23lo = _mm256_unpacklo_epi32( t2 , t3 ); // 20,30,21,31
+	t23hi = _mm256_unpackhi_epi32( t2 , t3 ); // 22,32,23,33
+
+	r01lo = _mm256_unpacklo_epi64( t01lo , t23lo ); // 00,10,20,30
+	r01hi = _mm256_unpackhi_epi64( t01lo , t23lo ); // 01,11,21,31
+	r23lo = _mm256_unpacklo_epi64( t01hi , t23hi ); // 02,12,22,32
+	r23hi = _mm256_unpackhi_epi64( t01hi , t23hi ); // 03,13,23,33
+
+	__m256i s4 = _mm256_shuffle_epi8( r01lo , *(__m256i*)_tr_4x4 );
+	__m256i s5 = _mm256_shuffle_epi8( r01hi , *(__m256i*)_tr_4x4 );
+	__m256i s6 = _mm256_shuffle_epi8( r23lo , *(__m256i*)_tr_4x4 );
+	__m256i s7 = _mm256_shuffle_epi8( r23hi , *(__m256i*)_tr_4x4 );
+
+	_mm256_store_si256( (__m256i*) _r , s0 );
+	_mm256_store_si256( (__m256i*) (_r+32*1) , s1 );
+	_mm256_store_si256( (__m256i*) (_r+32*2) , s2 );
+	_mm256_store_si256( (__m256i*) (_r+32*3) , s3 );
+	_mm256_store_si256( (__m256i*) (_r+32*4) , s4 );
+	_mm256_store_si256( (__m256i*) (_r+32*5) , s5 );
+	_mm256_store_si256( (__m256i*) (_r+32*6) , s6 );
+	_mm256_store_si256( (__m256i*) (_r+32*7) , s7 );
+#endif
+}
+
+
+
+static inline
+void transpose_8x8_h4zero_b4_avx2( uint8_t * _r , const uint8_t * a ) {
+	__m256i a0 = _mm256_load_si256( (__m256i*) a );
+	__m256i a1 = _mm256_load_si256( (__m256i*) (a+32*1) );
+	__m256i a2 = _mm256_load_si256( (__m256i*) (a+32*2) );
+	__m256i a3 = _mm256_load_si256( (__m256i*) (a+32*3) );
+	__m256i a4 = _mm256_load_si256( (__m256i*) (a+32*4) );
+	__m256i a5 = _mm256_load_si256( (__m256i*) (a+32*5) );
+	__m256i a6 = _mm256_load_si256( (__m256i*) (a+32*6) );
+	__m256i a7 = _mm256_load_si256( (__m256i*) (a+32*7) );
+
+	__m256i t0,t1,t2,t3;
+	t0 = _mm256_unpacklo_epi32( a0 , a4 );
+	t1 = _mm256_unpackhi_epi32( a0 , a4 );
+	a0 = _mm256_unpacklo_epi64( t0 , t1 );
+
+	t2 = _mm256_unpacklo_epi32( a1 , a5 );
+	t3 = _mm256_unpackhi_epi32( a1 , a5 );
+	a1 = _mm256_unpacklo_epi64( t2 , t3 );
+
+	t0 = _mm256_unpacklo_epi32( a2 , a6 );
+	t1 = _mm256_unpackhi_epi32( a2 , a6 );
+	a2 = _mm256_unpacklo_epi64( t0 , t1 );
+
+	t2 = _mm256_unpacklo_epi32( a3 , a7 );
+	t3 = _mm256_unpackhi_epi32( a3 , a7 );
+	a3 = _mm256_unpacklo_epi64( t2 , t3 );
+
+/// code of 4x4_b8
+	t0 = _mm256_shuffle_epi8( a0 , *(__m256i*)_tr_4x4 ); // 00,01,02,03
+	t1 = _mm256_shuffle_epi8( a1 , *(__m256i*)_tr_4x4 ); // 10,11,12,13
+	t2 = _mm256_shuffle_epi8( a2 , *(__m256i*)_tr_4x4 ); // 20,21,22,23
+	t3 = _mm256_shuffle_epi8( a3 , *(__m256i*)_tr_4x4 ); // 30,31,32,33
+
+	__m256i t01lo = _mm256_unpacklo_epi32( t0 , t1 ); // 00,10,01,11
+	__m256i t01hi = _mm256_unpackhi_epi32( t0 , t1 ); // 02,12,03,13
+	__m256i t23lo = _mm256_unpacklo_epi32( t2 , t3 ); // 20,30,21,31
+	__m256i t23hi = _mm256_unpackhi_epi32( t2 , t3 ); // 22,32,23,33
+
+	__m256i r01lo = _mm256_unpacklo_epi64( t01lo , t23lo ); // 00,10,20,30
+	__m256i r01hi = _mm256_unpackhi_epi64( t01lo , t23lo ); // 01,11,21,31
+	__m256i r23lo = _mm256_unpacklo_epi64( t01hi , t23hi ); // 02,12,22,32
+	__m256i r23hi = _mm256_unpackhi_epi64( t01hi , t23hi ); // 03,13,23,33
+
+	__m256i s0 = _mm256_shuffle_epi8( r01lo , *(__m256i*)_tr_4x4 );
+	__m256i s1 = _mm256_shuffle_epi8( r01hi , *(__m256i*)_tr_4x4 );
+	__m256i s2 = _mm256_shuffle_epi8( r23lo , *(__m256i*)_tr_4x4 );
+	__m256i s3 = _mm256_shuffle_epi8( r23hi , *(__m256i*)_tr_4x4 );
+
+	_mm256_store_si256( (__m256i*) _r , s0 );
+	_mm256_store_si256( (__m256i*) (_r+32*1) , s1 );
+	_mm256_store_si256( (__m256i*) (_r+32*2) , s2 );
+	_mm256_store_si256( (__m256i*) (_r+32*3) , s3 );
+
 }
 
 

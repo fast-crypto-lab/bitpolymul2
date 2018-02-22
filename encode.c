@@ -445,11 +445,17 @@ void encode_64_half_input_zero( uint64_t * rfx , const uint64_t * fx , unsigned 
 
 		// truncated FFT
 		//for(unsigned j=0;j<256;j++) temp64[j] = bitmatrix_prod_64x64_M4R( beta_mul_32_m4r , temp64[j] );
-		for(unsigned j=0;j<(64*4/32);j++) bitmatrix_prod_32x64_4R_b32_avx2( (uint8_t*)(&temp64[32*j]) , beta_mul_32_bm4r , (uint8_t*)(&temp64[32*j]) );
+#if 0
+		for(unsigned j=0;j<(64*4/32);j++) bitmatrix_prod_64x64_h32zero_4R_b32_avx2( (uint8_t*)(&temp64[32*j]) , beta_mul_32_bm4r , (uint8_t*)(&temp64[32*j]) );
+#else
+		for(unsigned j=0;j<(64*4/64);j++) bitmatrix_prod_64x64_h32zero_4R_b64_avx2( (uint8_t*)(&temp64[64*j]) , beta_mul_32_bm4r , (uint8_t*)(&temp64[64*j]) );
+#endif
+
 		for(unsigned j=0;j<64;j++) rfx[i*256+j] = temp64[j*4] ;
 		for(unsigned j=0;j<64;j++) rfx[i*256+64+j] = temp64[j*4+1] ;
 		for(unsigned j=0;j<64;j++) rfx[i*256+128+j] = temp64[j*4+2] ;
 		for(unsigned j=0;j<64;j++) rfx[i*256+192+j] = temp64[j*4+3] ;
+
 	}
 }
 
@@ -509,15 +515,24 @@ void decode_64( uint64_t * rfx , const uint64_t * fx , unsigned n_fx )
 		}
 		// truncated iFFT
 		//for(unsigned j=0;j<64*4;j++) temp64[j] = bitmatrix_prod_64x64_M4R( i_beta_mul_32_m4r , temp64[j] );
+#if 0
 		for(unsigned j=0;j<(64*4/32);j++) bitmatrix_prod_64x64_4R_b32_avx2( (uint8_t*)(&temp64[32*j]) , i_beta_mul_32_bm4r , (uint8_t*)(&temp64[32*j]) );
-
+#else
+		for(unsigned j=0;j<(64*4/64);j++) bitmatrix_prod_64x64_4R_b64_avx2( (uint8_t*)(&temp64[64*j]) , i_beta_mul_32_bm4r , (uint8_t*)(&temp64[64*j]) );
+#endif
 		bit_bc_64x2_exp( temp );
 
 		tr_bit_64x64_b4_avx2( (uint8_t*)(temp) , (const uint8_t *)temp );
 
 		for(unsigned j=0;j<64;j++) {
 			temp[j] = exp_s7( temp[j] );
+#if 1
+			_mm256_stream_si256 ( &rfx_256[i+j*num], temp[j] );
+#elif 0
+			_mm256_store_si256 ( &rfx_256[i+j*num], temp[j] );
+#else
 			rfx_256[i+j*num] = temp[j];
+#endif
 		}
 	}
 }
