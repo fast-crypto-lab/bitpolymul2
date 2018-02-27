@@ -526,9 +526,9 @@ void decode_64( uint64_t * rfx , const uint64_t * fx , unsigned n_fx )
 
 		for(unsigned j=0;j<64;j++) {
 			temp[j] = exp_s7( temp[j] );
-#if 1
+#if 0
 			_mm256_stream_si256 ( &rfx_256[i+j*num], temp[j] );
-#elif 0
+#elif 1
 			_mm256_store_si256 ( &rfx_256[i+j*num], temp[j] );
 #else
 			rfx_256[i+j*num] = temp[j];

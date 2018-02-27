@@ -289,6 +289,7 @@ bm_stop(&bm_ibc);
 void bitpolymul_2_64( uint64_t * c , const uint64_t * a , const uint64_t * b , unsigned _n_64 )
 {
 	if( 0 == _n_64 ) return;
+	if( _n_64 > (1<<26) ) { printf("un-supported length of polynomials."); exit(-1); }
 	unsigned n_64 = 0;
 	if( 1 == _n_64 ) n_64 = _n_64;
 	else {
