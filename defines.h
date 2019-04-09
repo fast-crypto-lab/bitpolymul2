@@ -6,7 +6,8 @@
 #include <intrin.h>
 #include <malloc.h>
 
-#define aligned_alloc(a,s) _aligned_malloc(s,a)
+#define aligned_alloc(a,s)  malloc(s)
+//_aligned_malloc(s,a)
 
 #define BIT_POLY_ALIGN(x) 
 

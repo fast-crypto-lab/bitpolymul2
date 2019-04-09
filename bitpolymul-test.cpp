@@ -74,7 +74,7 @@ extern "C" {
 }
 #endif
 
-#define LOG2(X) ((unsigned) (8*sizeof (unsigned long long) - __builtin_clzll((X)) - 1))
+#define LOG2(X) ((uint64_t) (8*sizeof (unsigned long long) - __builtin_clzll((X)) - 1))
 
 
 void mul(uint64_t * c, const uint64_t * a, const uint64_t * b, unsigned _n_64)
@@ -87,7 +87,7 @@ int main(int argc, char ** argv)
 {
     //unsigned char seed[32] = {0};
 
-    unsigned log2_len = LOG2(LEN);
+    uint64_t log2_len = LOG2(LEN);
     if (log2_len == LOG2(LEN - 1)) log2_len++;
     if (2 == argc) {
         log2_len = atoi(argv[1]);
@@ -96,7 +96,7 @@ int main(int argc, char ** argv)
             exit(-1);
         }
     }
-    unsigned len = 1 << log2_len;
+    uint64_t len = 1 << log2_len;
 
     printf("Multiplication test:\ninput poly len: 2^%d x 64 bit. Benchmark in micro seconds.\n", log2_len);
 
@@ -140,16 +140,32 @@ int main(int argc, char ** argv)
 
     //byte_rand( poly1 , LEN );
 //	memset( poly1 , 0 , sizeof(uint64_t)*len );
-//	for(unsigned i=0;i<len;i++) poly1[i] = i;
+//	for(uint64_t i=0;i<len;i++) poly1[i] = i;
 //	poly1[0] = 3;
 //	poly1[1] = 3;
 //	memset( poly2 , 0 , sizeof(uint64_t)*len );
-//	for(unsigned i=0;i<len;i++) poly2[i] = i+1;
+//	for(uint64_t i=0;i<len;i++) poly2[i] = i+1;
 //	poly2[0] = 2;
 //	poly2[1] = 2;
     //memcpy( poly2 , poly1 , LEN*sizeof(uint64_t) );
-    for (unsigned q = 0; q < len; q++) { poly1[q] = rand(); poly1[q] <<= 32; poly1[q] |= rand(); }
-    for (unsigned q = 0; q < len; q++) { poly2[q] = rand(); poly2[q] <<= 32; poly2[q] |= rand(); }
+    bool random = false;
+    if (random)
+    {
+        for (uint64_t q = 0; q < len; q++) { poly1[q] = rand(); poly1[q] <<= 32; poly1[q] |= rand(); }
+        for (uint64_t q = 0; q < len; q++) { poly2[q] = rand(); poly2[q] <<= 32; poly2[q] |= rand(); }
+    }
+    else
+    {
+        poly1[0] = 2;
+        poly2[0] = 4;
+
+        for (uint64_t q = 1; q < len; q++) { 
+            poly1[q] = 0; 
+        }
+        for (uint64_t q = 1; q < len; q++) { 
+            poly2[q] = 0; 
+        }
+    }
     bm_func1(poly5, poly2, poly1, len);
     bm_func1(poly3, poly1, poly2, len);
     if (32 >= len) {
@@ -163,8 +179,8 @@ int main(int argc, char ** argv)
         }
     }
 
-    for (unsigned q = 0; q < len; q++) { poly1[q] = rand(); poly1[q] <<= 32; poly1[q] |= rand(); }
-    for (unsigned q = 0; q < len; q++) { poly2[q] = rand(); poly2[q] <<= 32; poly2[q] |= rand(); }
+    for (uint64_t q = 0; q < len; q++) { poly1[q] = rand(); poly1[q] <<= 32; poly1[q] |= rand(); }
+    for (uint64_t q = 0; q < len; q++) { poly2[q] = rand(); poly2[q] <<= 32; poly2[q] |= rand(); }
     bm_func1(poly3, poly1, poly2, len);
     //bm_func1( poly4 , poly1 , poly2 , len );
     bm_func1(poly4, poly2, poly1, len);
@@ -178,20 +194,20 @@ int main(int argc, char ** argv)
             printf("diff:"); u64_fdump(stdout, poly4, len * 2); puts("");
         }
     }
-
+     
     //for(int i=0;i<7;i++) bm_func2( o1 , poly1 , v1 );
     //exit(-1);
 
-    unsigned fail_count = 0;
-    unsigned chk = 0;
-    for (unsigned i = 0; i < TEST_RUN; i++) {
+    uint64_t fail_count = 0;
+    uint64_t chk = 0;
+    for (uint64_t i = 0; i < TEST_RUN; i++) {
         //byte_rand( poly1 , LEN );
         //memcpy( poly2 , poly1 , LEN*sizeof(uint64_t) );
         //srand(0);
-        for (unsigned q = 0; q < len; q++) { poly1[q] = rand(); poly1[q] <<= 32; poly1[q] |= rand(); }
-        for (unsigned q = 0; q < len; q++) { poly2[q] = rand(); poly2[q] <<= 32; poly2[q] |= rand(); }
-        for (unsigned q = 0; q < len; q++) { poly1[q] = q + 1; }
-        for (unsigned q = 0; q < len; q++) { poly2[q] = q + 2; }
+        for (uint64_t q = 0; q < len; q++) { poly1[q] = rand(); poly1[q] <<= 32; poly1[q] |= rand(); }
+        for (uint64_t q = 0; q < len; q++) { poly2[q] = rand(); poly2[q] <<= 32; poly2[q] |= rand(); }
+        for (uint64_t q = 0; q < len; q++) { poly1[q] = q + 1; }
+        for (uint64_t q = 0; q < len; q++) { poly2[q] = q + 2; }
 
         BENCHMARK(bm1, {
                 bm_func1(poly3 , poly2 , poly1 , len);
@@ -203,7 +219,7 @@ int main(int argc, char ** argv)
 
         memcpy(poly5, poly4, sizeof(uint64_t)*len * 2);
         byte_xor(poly5, poly3, len * 2);
-        chk |= ((unsigned*)(&poly5[0]))[0];
+        chk |= ((uint64_t*)(&poly5[0]))[0];
         if (!byte_is_zero(poly5, len * 2)) {
             fail_count++;
 #ifdef TEST_CONSISTENCY
