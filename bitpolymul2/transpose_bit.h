@@ -9,7 +9,7 @@ Code is borrowed from HOEVEN, LARRIEU, and LECERF.
 
 #include <stdint.h>
 #include <immintrin.h>
-#include "defines.h"
+#include "bitpolymul2/defines.h"
 
 
 static uint64_t _tr_bit_mask_4[4] BIT_POLY_ALIGN(32) = {0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL};
