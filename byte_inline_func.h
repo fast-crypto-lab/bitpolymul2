@@ -23,7 +23,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-
+#include "defines.h"
 
 
 static inline
@@ -69,12 +69,12 @@ void xmm_rand( __m128i * vec , unsigned n ) { byte_rand((uint8_t*)vec,n*16); }
 static inline
 uint64_t xmm_is_zero( const __m128i * vec , unsigned n ) {
 	__m128i r=_mm_setzero_si128();
-	for(unsigned i=0;i<n;i++) r |= vec[i];
+	for(unsigned i=0;i<n;i++) r = or128(r, vec[i]);
 	return 0xffff==_mm_movemask_epi8( _mm_cmpeq_epi8(r,_mm_setzero_si128()) );
 }
 
 static inline
-void xmm_xor( __m128i * v1 , const __m128i * v2 , unsigned n ) { for(unsigned i=0;i<n;i++) v1[i]^= v2[i]; }
+void xmm_xor( __m128i * v1 , const __m128i * v2 , unsigned n ) { for(unsigned i=0;i<n;i++) v1[i] = xor128(v1[i], v2[i]); }
 
 static inline
 void xmm_fdump( FILE * fp, const __m128i *v, unsigned n ) {

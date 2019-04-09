@@ -18,9 +18,9 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "stdint.h"
+#include "defines.h"
 
-
-uint64_t gf2128toCantor[2*128] __attribute__((aligned(32))) = {
+uint64_t gf2128toCantor[2*128] BIT_POLY_ALIGN(32) = {
  0x1, 0x0,
  0xF62DA500563A6180, 0x4E8FB76FADDE40EA,
  0x8D3B77807D275140, 0x69C86CD87B31609F,
@@ -152,7 +152,7 @@ uint64_t gf2128toCantor[2*128] __attribute__((aligned(32))) = {
 };
 
 
-uint64_t gfCantorto2128[2*128] __attribute__((aligned(32))) = {
+uint64_t gfCantorto2128[2*128] BIT_POLY_ALIGN(32) = {
  0x1, 0x0,
  0x676AAC9FA4B20B08, 0x295AC0B1F4731AF9,
  0xFF1099C31BBE8F22, 0xA2134422CD4054C9,
@@ -284,7 +284,7 @@ uint64_t gfCantorto2128[2*128] __attribute__((aligned(32))) = {
 };
 
 
-uint64_t gf2128toCantor_4R[2*(16*2*16)] __attribute__((aligned(32))) = {
+uint64_t gf2128toCantor_4R[2*(16*2*16)] BIT_POLY_ALIGN(32) = {
 
 0x0,0x0,
 0x1,0x0,
@@ -800,7 +800,7 @@ uint64_t gf2128toCantor_4R[2*(16*2*16)] __attribute__((aligned(32))) = {
 0x918ec244d33ea76e,0xd6b8e78ee77513c6,
 };
 
-uint64_t gfCantorto2128_4R[2*(16*2*16)] __attribute__((aligned(32))) = {
+uint64_t gfCantorto2128_4R[2*(16*2*16)] BIT_POLY_ALIGN(32) = {
 0x0,0x0,
 0x1,0x0,
 0x676aac9fa4b20b08,0x295ac0b1f4731af9,
@@ -1318,7 +1318,7 @@ uint64_t gfCantorto2128_4R[2*(16*2*16)] __attribute__((aligned(32))) = {
 
 
 
-uint64_t gfCantorto2128_8R[2*(8*256)] __attribute__((aligned(32))) = {
+uint64_t gfCantorto2128_8R[2*(8*256)] BIT_POLY_ALIGN(32) = {
 0x0,0x0,
 0x1,0x0,
 0x676aac9fa4b20b08,0x295ac0b1f4731af9,

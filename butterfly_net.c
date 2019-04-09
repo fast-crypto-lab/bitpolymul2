@@ -30,6 +30,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "string.h"
 
+#include "defines.h"
 
 /////////////////////////////////////////////////
 ///
@@ -46,7 +47,7 @@ void butterfly_0( __m128i * poly , unsigned unit )
 {
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor128(poly[unit_2 + i], poly[i]);
 	}
 }
 
@@ -54,7 +55,7 @@ void butterfly_0( __m128i * poly , unsigned unit )
 static
 void butterfly( __m128i * poly , unsigned unit , unsigned ska )
 {
-	uint8_t ska_iso[16] __attribute__((aligned(32)));
+	uint8_t ska_iso[16] BIT_POLY_ALIGN(32);
 	bitmatrix_prod_64x128_8R_sse( ska_iso , gfCantorto2128_8R , ska );
 	//__m128i a = _mm_load_si128( (__m128i*) ska_iso );
 
@@ -62,8 +63,8 @@ void butterfly( __m128i * poly , unsigned unit , unsigned ska )
 	for(unsigned i=0;i<unit_2;i++) {
 		__m128i r;
 		gf2ext128_mul_sse( (uint8_t*)&r , (uint8_t*)&poly[unit_2+i] , ska_iso );
-		poly[i] ^= r;
-		poly[unit_2+i] ^= poly[i];
+		poly[i] = xor128(poly[i], r);
+		poly[unit_2+i] = xor128(poly[unit_2 + i], poly[i]);
 	}
 
 }
@@ -72,16 +73,16 @@ void butterfly( __m128i * poly , unsigned unit , unsigned ska )
 static
 void i_butterfly( __m128i * poly , unsigned unit , unsigned ska )
 {
-	uint8_t ska_iso[16] __attribute__((aligned(32)));
+	uint8_t ska_iso[16] BIT_POLY_ALIGN(32);
 	bitmatrix_prod_64x128_8R_sse( ska_iso , gfCantorto2128_8R , ska );
 	//__m128i a = _mm_load_si128( (__m128i*) ska_iso );
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor128(poly[unit_2 + i], poly[i]);
 		__m128i r;
 		gf2ext128_mul_sse( (uint8_t*)&r , (uint8_t*)&poly[unit_2+i] , ska_iso );
-		poly[i] ^= r;
+		poly[i] = xor128(poly[i], r);
 	}
 
 }

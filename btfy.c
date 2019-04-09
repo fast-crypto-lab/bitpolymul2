@@ -28,7 +28,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "string.h"
 
-
+#include "defines.h"
 
 /////////////////////////////////////////////////
 ///
@@ -50,7 +50,7 @@ __m128i gf_isomorphism_single_bit( unsigned ith_bit )
 static inline
 __m128i gf_isomorphism( uint64_t a_in_cantor )
 {
-	uint8_t a_iso[16] __attribute__((aligned(32)));
+	uint8_t a_iso[16] BIT_POLY_ALIGN(32);
 	bitmatrix_prod_64x128_8R_sse( a_iso , gfCantorto2128_8R , a_in_cantor );
 	return _mm_load_si128( (__m128i*) a_iso );
 }
@@ -71,14 +71,14 @@ static inline
 __m128i butterfly( __m128i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a = xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[i] ^= _gf2ext128_mul_sse( poly[unit_2+i] , a );
+		poly[i] = xor128(poly[i] , _gf2ext128_mul_sse( poly[unit_2+i] , a ));
 		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor128(poly[unit_2 + i], poly[i]);
 	}
 	return a;
 }
@@ -89,14 +89,14 @@ static inline
 __m128i butterfly_avx2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a = xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[i] ^= _gf2ext128_mul_2x1_avx2( poly[unit_2+i] , a );
+		poly[i] = xor256(poly[i], _gf2ext128_mul_2x1_avx2( poly[unit_2+i] , a ));
 		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
 	}
 	return a;
 }
@@ -106,7 +106,7 @@ static inline
 __m128i butterfly_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a =xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=2) {
@@ -123,12 +123,12 @@ __m128i butterfly_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m12
 		_mm_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
+		q0 = xor256(q0, ap0);
+		q1 = xor256(q1, ap1);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
-		p0 ^= q0;
-		p1 ^= q1;
+		p0 = xor256(p0, q0);
+        p1 = xor256(p1, q1);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 	}
@@ -140,7 +140,7 @@ static inline
 __m128i butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a = xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=4) {
@@ -167,18 +167,18 @@ __m128i butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m12
 		_mm_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
-		q2 ^= ap2;
-		q3 ^= ap3;
+		q0 = xor256(q0, ap0);
+        q1 = xor256(q1, ap1);
+        q2 = xor256(q2, ap2);
+        q3 = xor256(q3, ap3);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
 		_mm256_store_si256( &poly[i+2] , q2 );
 		_mm256_store_si256( &poly[i+3] , q3 );
-		p0 ^= q0;
-		p1 ^= q1;
-		p2 ^= q2;
-		p3 ^= q3;
+		p0 = xor256(p0, q0);
+        p1 = xor256(p1, q1);
+        p2 = xor256(p2, q2);
+        p3 = xor256(p3, q3);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm256_store_si256( &poly[unit_2+i+2] , p2 );
@@ -194,14 +194,14 @@ static inline
 __m128i i_butterfly( __m128i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a = xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor128(poly[unit_2 + i], poly[i]);
 		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
-		poly[i] ^= _gf2ext128_mul_sse( poly[unit_2+i] , a );
+		poly[i] = xor128(poly[i], _gf2ext128_mul_sse( poly[unit_2+i] , a ));
 	}
 	return a;
 }
@@ -212,14 +212,14 @@ static inline
 __m128i i_butterfly_avx2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a = xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
 		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
-		poly[i] ^= _gf2ext128_mul_2x1_avx2( poly[unit_2+i] , a );
+		poly[i] = xor256(poly[i], _gf2ext128_mul_2x1_avx2( poly[unit_2+i] , a ));
 	}
 	return a;
 }
@@ -228,7 +228,7 @@ static inline
 __m128i i_butterfly_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a = xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=2) {
@@ -238,8 +238,8 @@ __m128i i_butterfly_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m
 		__m256i q0 = _mm256_load_si256( &poly[i] );
 		__m256i q1 = _mm256_load_si256( &poly[i+1] );
 
-		p0 ^= q0;
-		p1 ^= q1;
+		p0 = xor256(p0, q0);
+        p1 = xor256(p1, q1);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm_prefetch( &poly[i+2] , _MM_HINT_T0 );
@@ -250,8 +250,8 @@ __m128i i_butterfly_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m
 		__m256i ap0 = _gf2ext128_mul_2x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext128_mul_2x1_avx2( p1 , a );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
+		q0 = xor256(q0, ap0);
+		q1 = xor256(q1, ap1);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
 	}
@@ -264,7 +264,7 @@ static inline
 __m128i i_butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf_isomorphism( ska );
+	a = xor128(a, gf_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=4) {
@@ -278,10 +278,10 @@ __m128i i_butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m
 		__m256i q2 = _mm256_load_si256( &poly[i+2] );
 		__m256i q3 = _mm256_load_si256( &poly[i+3] );
 
-		p0 ^= q0;
-		p1 ^= q1;
-		p2 ^= q2;
-		p3 ^= q3;
+		p0 = xor256(p0, q0);
+		p1 = xor256(p1, q1);
+		p2 = xor256(p2, q2);
+		p3 = xor256(p3, q3);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm256_store_si256( &poly[unit_2+i+2] , p2 );
@@ -300,10 +300,10 @@ __m128i i_butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m
 		__m256i ap2 = _gf2ext128_mul_2x1_avx2( p2 , a );
 		__m256i ap3 = _gf2ext128_mul_2x1_avx2( p3 , a );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
-		q2 ^= ap2;
-		q3 ^= ap3;
+		q0 = xor256(q0, ap0);
+		q1 = xor256(q1, ap1);
+		q2 = xor256(q2, ap2);
+		q3 = xor256(q3, ap3);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
 		_mm256_store_si256( &poly[i+2] , q2 );
@@ -562,7 +562,7 @@ __m128i gf264_isomorphism_single_bit( unsigned ith_bit )
 static inline
 __m128i gf264_isomorphism( uint64_t a_in_cantor )
 {
-	uint8_t a_iso[16] __attribute__((aligned(32)));
+	uint8_t a_iso[16] BIT_POLY_ALIGN(32);
 	bitmatrix_prod_64x128_8R_sse( a_iso , gfCantorto264_8R , a_in_cantor );
 	return _mm_load_si128( (__m128i*) a_iso );
 }
@@ -572,16 +572,16 @@ __m128i gf264_isomorphism( uint64_t a_in_cantor )
 static inline
 __m128i butterfly_64_xmm( __m128i d , __m128i a )
 {
-	__m128i r0 = d^_gf2ext64_mul_hi_sse( d , a );
-	__m128i r1 = r0^_mm_slli_si128( r0 , 8 );
+	__m128i r0 = xor128(d, _gf2ext64_mul_hi_sse( d , a ));
+	__m128i r1 = xor128(r0, _mm_slli_si128( r0 , 8 ));
 	return r1;
 }
 
 static inline
 __m128i i_butterfly_64_xmm( __m128i d , __m128i a )
 {
-	__m128i r0 = d^_mm_slli_si128( d , 8 );
-	__m128i r1 = r0^_gf2ext64_mul_hi_sse( r0 , a );
+	__m128i r0 = xor128(d, _mm_slli_si128( d , 8 ));
+	__m128i r1 = xor128(r0, _gf2ext64_mul_hi_sse( r0 , a ));
 	return r1;
 }
 
@@ -589,7 +589,7 @@ static inline
 __m128i butterfly_64_u2( __m128i * poly , unsigned ska , __m128i extra_a ) /// unit = 2>>1
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = butterfly_64_xmm( poly[0] , a );
 	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
@@ -599,7 +599,7 @@ static inline
 __m128i i_butterfly_64_u2( __m128i * poly , unsigned ska , __m128i extra_a ) /// unit = 2>>1
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = i_butterfly_64_xmm( poly[0] , a );
 	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
@@ -613,8 +613,8 @@ __m256i butterfly_64_ymm( __m256i d , __m128i a )
 {
 	__m128i d0 = _mm256_castsi256_si128( d );
 	__m128i d1 = _mm256_extracti128_si256( d , 1 );
-	d0 ^= _gf2ext64_mul_2x1_sse( d1 , a );
-	d1 ^= d0;
+	d0 = xor128(d0, _gf2ext64_mul_2x1_sse( d1 , a ));
+	d1 = xor128(d1, d0);
 	__m256i r0 = _mm256_castsi128_si256( d0 );
 	__m256i r1 = _mm256_inserti128_si256( r0 , d1 , 1 );
 	return r1;
@@ -625,8 +625,8 @@ __m256i i_butterfly_64_ymm( __m256i d , __m128i a )
 {
 	__m128i d0 = _mm256_castsi256_si128( d );
 	__m128i d1 = _mm256_extracti128_si256( d , 1 );
-	d1 ^= d0;
-	d0 ^= _gf2ext64_mul_2x1_sse( d1 , a );
+	d1 = xor128(d1, d0);
+	d0 = xor128(d0, _gf2ext64_mul_2x1_sse( d1 , a ));
 	__m256i r0 = _mm256_castsi128_si256( d0 );
 	__m256i r1 = _mm256_inserti128_si256( r0 , d1 , 1 );
 	return r1;
@@ -636,7 +636,7 @@ static inline
 __m128i butterfly_64_u4( __m256i * poly , unsigned ska , __m128i extra_a ) /// unit = 4>>2
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = butterfly_64_ymm( poly[0] , a );
 	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
@@ -646,7 +646,7 @@ static inline
 __m128i i_butterfly_64_u4( __m256i * poly , unsigned ska , __m128i extra_a ) /// unit = 4>>2
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = i_butterfly_64_ymm( poly[0] , a );
 	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
@@ -660,14 +660,14 @@ static inline
 __m128i butterfly_64_avx2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a ) /// unit >= 8>>2
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[i] ^= _gf2ext64_mul_4x1_avx2( poly[unit_2+i] , a );
+		poly[i] = xor256(poly[i], _gf2ext64_mul_4x1_avx2( poly[unit_2+i] , a ));
 		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
 	}
 	return a;
 }
@@ -677,7 +677,7 @@ static inline
 __m128i butterfly_64_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=2) {
@@ -694,12 +694,12 @@ __m128i butterfly_64_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __
 		_mm_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
+		q0 = xor256(q0, ap0);
+		q1 = xor256(q1, ap1);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
-		p0 ^= q0;
-		p1 ^= q1;
+		p0 = xor256(p0, q0);
+		p1 = xor256(p1, q1);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 	}
@@ -711,7 +711,7 @@ static inline
 __m128i butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=4) {
@@ -738,18 +738,18 @@ __m128i butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __
 		_mm_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
-		q2 ^= ap2;
-		q3 ^= ap3;
+		q0 = xor256(q0, ap0);
+        q1 = xor256(q1, ap1);
+        q2 = xor256(q2, ap2);
+        q3 = xor256(q3, ap3);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
 		_mm256_store_si256( &poly[i+2] , q2 );
 		_mm256_store_si256( &poly[i+3] , q3 );
-		p0 ^= q0;
-		p1 ^= q1;
-		p2 ^= q2;
-		p3 ^= q3;
+		p0 = xor256(p0, q0);
+        p1 = xor256(p1, q1);
+        p2 = xor256(p2, q2);
+        p3 = xor256(p3, q3);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm256_store_si256( &poly[unit_2+i+2] , p2 );
@@ -766,14 +766,14 @@ static inline
 __m128i i_butterfly_64_avx2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+    a = xor128(a, gf264_isomorphism(ska));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
-		poly[unit_2+i] ^= poly[i];
+		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
 		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
-		poly[i] ^= _gf2ext64_mul_4x1_avx2( poly[unit_2+i] , a );
+		poly[i] = xor256(poly[i], _gf2ext64_mul_4x1_avx2( poly[unit_2+i] , a ));
 	}
 	return a;
 }
@@ -783,7 +783,7 @@ static inline
 __m128i i_butterfly_64_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=2) {
@@ -793,8 +793,8 @@ __m128i i_butterfly_64_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , 
 		__m256i q0 = _mm256_load_si256( &poly[i] );
 		__m256i q1 = _mm256_load_si256( &poly[i+1] );
 
-		p0 ^= q0;
-		p1 ^= q1;
+		p0 = xor256(p0, q0);
+		p1 = xor256(p1, q1);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm_prefetch( &poly[i+2] , _MM_HINT_T0 );
@@ -805,8 +805,8 @@ __m128i i_butterfly_64_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , 
 		__m256i ap0 = _gf2ext64_mul_4x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext64_mul_4x1_avx2( p1 , a );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
+		q0 = xor256(q0, ap0);
+		q1 = xor256(q1, ap1);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
 	}
@@ -819,7 +819,7 @@ static inline
 __m128i i_butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m128i extra_a )
 {
 	__m128i a = extra_a;
-	a ^= gf264_isomorphism( ska );
+	a = xor128(a, gf264_isomorphism( ska ));
 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i+=4) {
@@ -833,10 +833,10 @@ __m128i i_butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , 
 		__m256i q2 = _mm256_load_si256( &poly[i+2] );
 		__m256i q3 = _mm256_load_si256( &poly[i+3] );
 
-		p0 ^= q0;
-		p1 ^= q1;
-		p2 ^= q2;
-		p3 ^= q3;
+		p0 = xor256(p0, q0);
+        p1 = xor256(p1, q1);
+        p2 = xor256(p2, q2);
+        p3 = xor256(p3, q3);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm256_store_si256( &poly[unit_2+i+2] , p2 );
@@ -855,10 +855,10 @@ __m128i i_butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , 
 		__m256i ap2 = _gf2ext64_mul_4x1_avx2( p2 , a );
 		__m256i ap3 = _gf2ext64_mul_4x1_avx2( p3 , a );
 
-		q0 ^= ap0;
-		q1 ^= ap1;
-		q2 ^= ap2;
-		q3 ^= ap3;
+		q0 = xor256(q0, ap0);
+        q1 = xor256(q1, ap1);
+        q2 = xor256(q2, ap2);
+        q3 = xor256(q3, ap3);
 		_mm256_store_si256( &poly[i] , q0 );
 		_mm256_store_si256( &poly[i+1] , q1 );
 		_mm256_store_si256( &poly[i+2] , q2 );

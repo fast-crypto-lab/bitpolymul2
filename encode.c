@@ -51,46 +51,46 @@ void bit_bc_64x2_div( __m256i * x )
 {
 	for(unsigned i=0;i<64;i++) x[64+i] = _mm256_srli_si256( x[i] , 8 );
 	for(int i=64-1;i>=0;i--) {
-		x[1+i] ^= x[64+i];
-		x[4+i] ^= x[64+i];
-		x[16+i] ^= x[64+i];
+		x[1+i]  = xor256(x[1+i] , x[64+i]);
+		x[4+i]  = xor256(x[4+i] , x[64+i]);
+		x[16+i] = xor256(x[16+i], x[64+i]);
 	}
 	for(unsigned i=0;i<64;i++) x[i] = _mm256_unpacklo_epi64( x[i] , x[64+i] );
 
 	for(unsigned i=0;i<64;i+=64) {
 		__m256i * pi = x + i;
 		for(int j=32-1;j>=0;j--) {
-			pi[1+j] ^= pi[32+j];
-			pi[2+j] ^= pi[32+j];
-			pi[16+j] ^= pi[32+j];
+			pi[1+j]  = xor256(pi[1+j]  ,pi[32+j] );
+			pi[2+j]  = xor256(pi[2+j]  ,pi[32+j] );
+			pi[16+j] = xor256(pi[16+j] , pi[32+j]);
 		}
 	}
 	for(unsigned i=0;i<64;i+=32) {
 		__m256i * pi = x + i;
 		for(int j=16-1;j>=0;j--) {
-			pi[1+j] ^= pi[16+j];
+			pi[1+j] = xor256(pi[1 + j], pi[16+j]);
 		}
 	}
 	for(unsigned i=0;i<64;i+=16) {
 		__m256i * pi = x + i;
 		for(int j=8-1;j>=0;j--) {
-			pi[1+j] ^= pi[8+j];
-			pi[2+j] ^= pi[8+j];
-			pi[4+j] ^= pi[8+j];
+			pi[1+j] = xor256(pi[1+j] , pi[8+j]);
+			pi[2+j] = xor256(pi[2+j] , pi[8+j]);
+			pi[4+j] = xor256(pi[4+j] , pi[8+j]);
 		}
 	}
 	for(unsigned i=0;i<64;i+=8) {
 		__m256i * pi = x + i;
-		pi[4] ^= pi[7];
-		pi[3] ^= pi[6];
-		pi[2] ^= pi[5];
-		pi[1] ^= pi[4];
+		pi[4] = xor256(pi[4], pi[7]);
+        pi[3] = xor256(pi[3], pi[6]);
+        pi[2] = xor256(pi[2], pi[5]);
+        pi[1] = xor256(pi[1], pi[4]);
 	}
 
 	for(unsigned i=0;i<64;i+=4) {
 		__m256i * pi = x + i;
-		pi[2] ^= pi[3];
-		pi[1] ^= pi[2];
+		pi[2] = xor256(pi[2], pi[3]);
+        pi[1] = xor256(pi[1], pi[2]);
 	}
 
 }
@@ -136,48 +136,48 @@ void bit_bc_div( __m256i * x )
 {
 	/// div s6 = x^64 + x^16 + x^4 + x
 	for(int i=64-1;i>=0;i--) {
-		x[1+i] ^= x[64+i];
-		x[4+i] ^= x[64+i];
-		x[16+i] ^= x[64+i];
+		x[1+i] = xor256(x[1+i]  ,x[64+i] );
+		x[4+i] = xor256(x[4+i]  ,x[64+i] );
+		x[16+i]= xor256(x[16+i] , x[64+i]);
 	}
 	/// div s5 = s^32 + x^16 + x^2 + x
 	for(unsigned i=0;i<128;i+=64) {
 		__m256i * pi = x + i;
 		for(int j=32-1;j>=0;j--) {
-			pi[1+j] ^= pi[32+j];
-			pi[2+j] ^= pi[32+j];
-			pi[16+j] ^= pi[32+j];
+			pi[1+j]  = xor256(pi[1+j]  ,pi[32+j] );
+			pi[2+j]  = xor256(pi[2+j]  ,pi[32+j] );
+			pi[16+j] = xor256(pi[16+j] , pi[32+j]);
 		}
 	}
 	/// div s4 = x^16 + x
 	for(unsigned i=0;i<128;i+=32) {
 		__m256i * pi = x + i;
 		for(int j=16-1;j>=0;j--) {
-			pi[1+j] ^= pi[16+j];
+			pi[1+j] = xor256(pi[1 + j], pi[16+j]);
 		}
 	}
 	/// div s3 = x^8 + x^4 + x^2 + x
 	for(unsigned i=0;i<128;i+=16) {
 		__m256i * pi = x + i;
 		for(int j=8-1;j>=0;j--) {
-			pi[1+j] ^= pi[8+j];
-			pi[2+j] ^= pi[8+j];
-			pi[4+j] ^= pi[8+j];
+			pi[1+j] = xor256(pi[1+j], pi[8+j]);
+			pi[2+j] = xor256(pi[2+j], pi[8+j]);
+			pi[4+j] = xor256(pi[4+j], pi[8+j]);
 		}
 	}
 	/// div s2 = x^4 + x
 	for(unsigned i=0;i<128;i+=8) {
 		__m256i * pi = x + i;
-		pi[4] ^= pi[7];
-		pi[3] ^= pi[6];
-		pi[2] ^= pi[5];
-		pi[1] ^= pi[4];
+		pi[4] = xor256(pi[4], pi[7]);
+        pi[3] = xor256(pi[3], pi[6]);
+        pi[2] = xor256(pi[2], pi[5]);
+        pi[1] = xor256(pi[1], pi[4]);
 	}
 	/// div s1 = x^2 + x
 	for(unsigned i=0;i<128;i+=4) {
 		__m256i * pi = x + i;
-		pi[2] ^= pi[3];
-		pi[1] ^= pi[2];
+		pi[2] = xor256(pi[2], pi[3]);
+        pi[1] = xor256(pi[1], pi[2]);
 	}
 }
 #else
@@ -288,42 +288,42 @@ void bit_bc_exp( __m256i * x )
 {
 	for(unsigned i=0;i<128;i+=4) {
 		__m256i * pi = x + i;
-		pi[1] ^= pi[2];
-		pi[2] ^= pi[3];
+		pi[1] = xor256(pi[1], pi[2]);
+        pi[2] = xor256(pi[2], pi[3]);
 	}
 	for(unsigned i=0;i<128;i+=8) {
 		__m256i * pi = x + i;
-		pi[1] ^= pi[4];
-		pi[2] ^= pi[5];
-		pi[3] ^= pi[6];
-		pi[4] ^= pi[7];
+		pi[1] = xor256(pi[1], pi[4]);
+        pi[2] = xor256(pi[2], pi[5]);
+        pi[3] = xor256(pi[3], pi[6]);
+        pi[4] = xor256(pi[4], pi[7]);
 	}
 	for(unsigned i=0;i<128;i+=16) {
 		__m256i * pi = x + i;
 		for(unsigned j=0;j<8;j++) {
-			pi[1+j] ^= pi[8+j];
-			pi[2+j] ^= pi[8+j];
-			pi[4+j] ^= pi[8+j];
+			pi[1+j] = xor256(pi[1+j] , pi[8+j]);
+			pi[2+j] = xor256(pi[2+j] , pi[8+j]);
+			pi[4+j] = xor256(pi[4+j] , pi[8+j]);
 		}
 	}
 	for(unsigned i=0;i<128;i+=32) {
 		__m256i * pi = x + i;
 		for(unsigned j=0;j<16;j++) {
-			pi[1+j] ^= pi[16+j];
+			pi[1+j] = xor256(pi[1 + j], pi[16+j]);
 		}
 	}
 	for(unsigned i=0;i<128;i+=64) {
 		__m256i * pi = x + i;
 		for(unsigned j=0;j<32;j++) {
-			pi[1+j] ^= pi[32+j];
-			pi[2+j] ^= pi[32+j];
-			pi[16+j] ^= pi[32+j];
+			pi[1+j]  = xor256(pi[1+j]  ,pi[32+j] );
+			pi[2+j]  = xor256(pi[2+j]  ,pi[32+j] );
+			pi[16+j] = xor256(pi[16+j] , pi[32+j]);
 		}
 	}
 	for(unsigned i=0;i<64;i++) {
-		x[1+i] ^= x[64+i];
-		x[4+i] ^= x[64+i];
-		x[16+i] ^= x[64+i];
+		x[1+i] = xor256(x[1+i]   ,x[64+i] );
+		x[4+i] = xor256(x[4+i]   ,x[64+i] );
+		x[16+i]= xor256(x[16+i]  , x[64+i]);
 	}
 }
 
@@ -373,44 +373,44 @@ void bit_bc_64x2_exp( __m256i * x )
 {
 	for(unsigned i=0;i<64;i+=4) {
 		__m256i * pi = x + i;
-		pi[1] ^= pi[2];
-		pi[2] ^= pi[3];
+		pi[1] = xor256(pi[1], pi[2]);
+        pi[2] = xor256(pi[2], pi[3]);
 	}
 	for(unsigned i=0;i<64;i+=8) {
 		__m256i * pi = x + i;
-		pi[1] ^= pi[4];
-		pi[2] ^= pi[5];
-		pi[3] ^= pi[6];
-		pi[4] ^= pi[7];
+		pi[1] = xor256(pi[1], pi[4]);
+        pi[2] = xor256(pi[2], pi[5]);
+        pi[3] = xor256(pi[3], pi[6]);
+        pi[4] = xor256(pi[4], pi[7]);
 	}
 	for(unsigned i=0;i<64;i+=16) {
 		__m256i * pi = x + i;
 		for(unsigned j=0;j<8;j++) {
-			pi[1+j] ^= pi[8+j];
-			pi[2+j] ^= pi[8+j];
-			pi[4+j] ^= pi[8+j];
+			pi[1+j] = xor256(pi[1+j] , pi[8+j]);
+			pi[2+j] = xor256(pi[2+j] , pi[8+j]);
+			pi[4+j] = xor256(pi[4+j] , pi[8+j]);
 		}
 	}
 	for(unsigned i=0;i<64;i+=32) {
 		__m256i * pi = x + i;
 		for(unsigned j=0;j<16;j++) {
-			pi[1+j] ^= pi[16+j];
+			pi[1+j] = xor256(pi[1 + j], pi[16+j]);
 		}
 	}
 	for(unsigned i=0;i<64;i+=64) {
 		__m256i * pi = x + i;
 		for(unsigned j=0;j<32;j++) {
-			pi[1+j] ^= pi[32+j];
-			pi[2+j] ^= pi[32+j];
-			pi[16+j] ^= pi[32+j];
+			pi[1+j]  = xor256(pi[1+j]  ,pi[32+j] );
+			pi[2+j]  = xor256(pi[2+j]  ,pi[32+j] );
+			pi[16+j] = xor256(pi[16+j] , pi[32+j]);
 		}
 	}
 
 	for(unsigned i=0;i<64;i++) x[64+i] = _mm256_srli_si256( x[i] , 8 );
 	for(unsigned i=0;i<64;i++) {
-		x[1+i] ^= x[64+i];
-		x[4+i] ^= x[64+i];
-		x[16+i] ^= x[64+i];
+		x[1+i]  = xor256(x[1+i]  ,x[64+i] );
+		x[4+i]  = xor256(x[4+i]  ,x[64+i] );
+		x[16+i] = xor256(x[16+i] , x[64+i]);
 	}
 	for(unsigned i=0;i<64;i++) x[i] = _mm256_unpacklo_epi64( x[i] , x[64+i] );
 

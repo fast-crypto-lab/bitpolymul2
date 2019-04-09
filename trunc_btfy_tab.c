@@ -19,11 +19,11 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "stdint.h"
+#include "defines.h"
 
 
 
-
-uint64_t beta_mul_64 [2*128] __attribute__((aligned(32))) = {
+uint64_t beta_mul_64 [2*128] BIT_POLY_ALIGN(32) = {
 0x1,0x0,
 0x27f349141093e620,0x97e14e9448decae7,
 0x771a1494d77054ac,0xde34b71e0312848f,
@@ -154,7 +154,7 @@ uint64_t beta_mul_64 [2*128] __attribute__((aligned(32))) = {
 0xff9141b4cd72945f,0xfbfc96eaf677f989,
 };
 
-uint64_t i_beta_mul_64 [2*128] __attribute__((aligned(32))) = {
+uint64_t i_beta_mul_64 [2*128] BIT_POLY_ALIGN(32) = {
 0x1, 0x0,
 0xecf66645c42f27d2, 0xbb9c4837f8fa748d,
 0xd5342e435bcfa36b, 0xddef560a099feb47,
@@ -288,7 +288,7 @@ uint64_t i_beta_mul_64 [2*128] __attribute__((aligned(32))) = {
 
 
 
-uint64_t beta_mul_64_bm4r [2*128*4] __attribute__((aligned(32))) = {
+uint64_t beta_mul_64_bm4r [2*128*4] BIT_POLY_ALIGN(32) = {
 0x8d8cadac21200100,0x9c9dbcbd30311011,
 0xfe769810ee668800,0x8008e66e9018f67e,
 0xb2b25454e6e60000,0xa2a24444f6f61010,
@@ -803,7 +803,7 @@ uint64_t beta_mul_64_bm4r [2*128*4] __attribute__((aligned(32))) = {
 0xd5587dfd28a5800,0xf6ae7c242971a3fb,
 };
 
-uint64_t i_beta_mul_64_bm4r [2*128*4] __attribute__((aligned(32))) = {
+uint64_t i_beta_mul_64_bm4r [2*128*4] BIT_POLY_ALIGN(32) = {
 0xb8b96a6bd3d20100,0x3e3feced55548786,
 0x80a06e4eceee2000,0x4d6da3830323edcd,
 0x8484a3a327270000,0xc1c1e6e662624545,
@@ -1319,7 +1319,7 @@ uint64_t i_beta_mul_64_bm4r [2*128*4] __attribute__((aligned(32))) = {
 };
 
 
-uint64_t beta_mul_64_bm4r_ext_8 [2*128*4*2] __attribute__((aligned(32))) = {
+uint64_t beta_mul_64_bm4r_ext_8 [2*128*4*2] BIT_POLY_ALIGN(32) = {
 0x8d8cadac21200100,0x9c9dbcbd30311011,0x8d8cadac21200100,0x9c9dbcbd30311011,
 0xfe769810ee668800,0x8008e66e9018f67e,0xfe769810ee668800,0x8008e66e9018f67e,
 0xb2b25454e6e60000,0xa2a24444f6f61010,0xb2b25454e6e60000,0xa2a24444f6f61010,
@@ -1835,7 +1835,7 @@ uint64_t beta_mul_64_bm4r_ext_8 [2*128*4*2] __attribute__((aligned(32))) = {
 };
 
 
-uint64_t i_beta_mul_64_bm4r_ext_8 [2*128*4*2] __attribute__((aligned(32))) = {
+uint64_t i_beta_mul_64_bm4r_ext_8 [2*128*4*2] BIT_POLY_ALIGN(32) = {
 0xb8b96a6bd3d20100,0x3e3feced55548786,0xb8b96a6bd3d20100,0x3e3feced55548786,
 0x80a06e4eceee2000,0x4d6da3830323edcd,0x80a06e4eceee2000,0x4d6da3830323edcd,
 0x8484a3a327270000,0xc1c1e6e662624545,0x8484a3a327270000,0xc1c1e6e662624545,

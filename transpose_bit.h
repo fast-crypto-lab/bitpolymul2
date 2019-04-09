@@ -9,24 +9,24 @@ Code is borrowed from HOEVEN, LARRIEU, and LECERF.
 
 #include <stdint.h>
 #include <immintrin.h>
+#include "defines.h"
 
 
-
-static uint64_t _tr_bit_mask_4[4] __attribute__((aligned(32))) = {0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL};
-static uint64_t _tr_bit_mask_2[4] __attribute__((aligned(32))) = {0x0000cccc0000ccccULL,0x0000cccc0000ccccULL,0x0000cccc0000ccccULL,0x0000cccc0000ccccULL};
-static uint64_t _tr_bit_mask_1[4] __attribute__((aligned(32))) = {0x00aa00aa00aa00aaULL,0x00aa00aa00aa00aaULL,0x00aa00aa00aa00aaULL,0x00aa00aa00aa00aaULL};
+static uint64_t _tr_bit_mask_4[4] BIT_POLY_ALIGN(32) = {0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL,0x00000000f0f0f0f0ULL};
+static uint64_t _tr_bit_mask_2[4] BIT_POLY_ALIGN(32) = {0x0000cccc0000ccccULL,0x0000cccc0000ccccULL,0x0000cccc0000ccccULL,0x0000cccc0000ccccULL};
+static uint64_t _tr_bit_mask_1[4] BIT_POLY_ALIGN(32) = {0x00aa00aa00aa00aaULL,0x00aa00aa00aa00aaULL,0x00aa00aa00aa00aaULL,0x00aa00aa00aa00aaULL};
 
 
 static inline
 __m256i tr_bit_8x8_b4_ymmx1( __m256i n ) {
 	__m256i a;
 
-	a = (_mm256_srli_epi64(n,28)^n)&(*(__m256i*)_tr_bit_mask_4);  n ^= a;
-	a = _mm256_slli_epi64(a,28);  n ^= a;
-	a = (_mm256_srli_epi64(n,14)^n)&(*(__m256i*)_tr_bit_mask_2);  n ^= a;
-	a = _mm256_slli_epi64(a,14);  n ^= a;
-	a = (_mm256_srli_epi64(n,7)^n)&(*(__m256i*)_tr_bit_mask_1);  n ^= a;
-	a = _mm256_slli_epi64(a,7);  n ^= a;
+	a = and256(xor256(_mm256_srli_epi64(n,28),n),(*(__m256i*)_tr_bit_mask_4));  n=xor256(n, a);
+	a = _mm256_slli_epi64(a,28); n = xor256(n, a);
+	a = and256(xor256(_mm256_srli_epi64(n,14),n),(*(__m256i*)_tr_bit_mask_2));  n = xor256(n, a);
+	a = _mm256_slli_epi64(a,14);  n = xor256(n, a);
+	a = and256(xor256(_mm256_srli_epi64(n,7),n),(*(__m256i*)_tr_bit_mask_1));  n = xor256(n, a);
+	a = _mm256_slli_epi64(a,7);  n = xor256(n, a);
 
 	return n;
 }

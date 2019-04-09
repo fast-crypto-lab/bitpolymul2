@@ -18,6 +18,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "bc.h"
+#include "defines.h"
 
 
 
@@ -89,7 +90,7 @@ void xor_down( bc_sto_t * poly , unsigned st , unsigned len , unsigned diff )
 	__m256i * poly256 = (__m256i*)(poly+st);
 	unsigned _len = len>>2;
 	for( unsigned i=0;i<_len;i++ ) {
-		*(poly256-i-1) ^= _mm256_loadu_si256( (__m256i*)(poly+st+diff-(i*4)-4) );
+		*(poly256-i-1) = xor256(*(poly256-i-1), _mm256_loadu_si256( (__m256i*)(poly+st+diff-(i*4)-4) ));
 	}
 	for( unsigned i=(_len<<2);i<len;i++) poly[st-i-1] ^= poly[st-i-1+diff];
 #endif
@@ -185,7 +186,7 @@ void xor_up( bc_sto_t * poly , unsigned st , unsigned len , unsigned diff )
 	__m256i * poly256 = (__m256i*)(poly+st);
 	unsigned _len = len>>2;
 	for( unsigned i=0;i<_len;i++ ) {
-		poly256[i] ^= _mm256_loadu_si256( (__m256i*)(poly+st+diff+(i*4)) );
+		poly256[i] = _mm256_xor_si256(poly256[i],_mm256_loadu_si256( (__m256i*)(poly+st+diff+(i*4)) ));
 	}
 	for( unsigned i=(_len<<2);i<len;i++) poly[st+i] ^= poly[st+i+diff];
 #endif
@@ -269,17 +270,17 @@ void xor_down_128( __m128i * poly , unsigned st , unsigned len , unsigned diff )
 	}
 #else
 	if( ((unsigned long)(poly+st)) & 31 ) {
-		poly[st-1] ^= poly[st+diff-1];
+		poly[st-1] = xor128(poly[st - 1],poly[st+diff-1]);
 		st--;
 		len--;
 	}
 	__m256i * poly256 = (__m256i*)(poly+st);
 	unsigned _len = len>>1;
 	for( unsigned i=0;i<_len;i++ ) {
-		*(poly256 - i-1) ^= _mm256_loadu_si256( (__m256i*)(poly+st+diff-(i*2)-2) );
+		*(poly256 - i-1) = xor256(*(poly256 - i - 1), _mm256_loadu_si256( (__m256i*)(poly+st+diff-(i*2)-2) ));
 	}
 	if( len&1 ) {
-		poly[st-len] ^= poly[st-len+diff];
+		poly[st-len] = xor128(poly[st - len], poly[st-len+diff]);
 	}
 #endif
 }
@@ -360,17 +361,17 @@ void xor_up_128( __m128i * poly , unsigned st , unsigned len , unsigned diff )
 	}
 #else
 	if( ((unsigned long)(poly+st)) & 31 ) {
-		poly[st] ^= poly[st+diff];
+		poly[st] = xor128(poly[st], poly[st+diff]);
 		st++;
 		len--;
 	}
 	__m256i * poly256 = (__m256i*)(poly+st);
 	unsigned _len = len>>1;
 	for( unsigned i=0;i<_len;i++ ) {
-		poly256[i] ^= _mm256_loadu_si256( (__m256i*)(poly+st+diff+(i*2)) );
+		poly256[i] = xor256(poly256[i], _mm256_loadu_si256( (__m256i*)(poly+st+diff+(i*2)) ));
 	}
 	if( len&1 ) {
-		poly[st+len-1] ^= poly[st+len-1+diff];
+		poly[st+len-1] = xor128(poly[st + len - 1] , poly[st+len-1+diff]);
 	}
 #endif
 }
@@ -456,7 +457,7 @@ void __xor_down_256( __m256i * poly , unsigned dest_idx , unsigned src_idx , uns
 {
 	for(unsigned i=len;i>0;){
 		i--;
-		poly[dest_idx+i] ^= poly[src_idx+i];
+		poly[dest_idx+i] = xor256(poly[dest_idx + i], poly[src_idx+i]);
 	}
 }
 
@@ -464,7 +465,7 @@ static inline
 void __xor_up_256( __m256i * poly , unsigned dest_idx , unsigned src_idx , unsigned len )
 {
 	for(unsigned i=0;i<len;i++){
-		poly[dest_idx+i] ^= poly[src_idx+i];
+		poly[dest_idx+i] = xor256(poly[dest_idx + i], poly[src_idx+i]);
 	}
 }
 
@@ -671,10 +672,10 @@ __m256i _mm256_alignr_255bit( __m256i high , __m256i low )
 	__m256i l_shr_15 = _mm256_srli_epi16( low , 15 );
 	__m256i h_shr_15 = _mm256_srli_epi16( high , 15 );
 	__m256i h_shl_1 = _mm256_slli_epi16( high , 1 );
-	__m256i r = h_shl_1^_mm256_slli_si256( h_shr_15 , 2 );
+	__m256i r = xor256(h_shl_1,_mm256_slli_si256( h_shr_15 , 2 ));
 
 	__m256i r_1 = _mm256_permute2x128_si256( l_shr_15 , h_shr_15 , 0x21 );
-	r ^= _mm256_srli_si256( r_1 , 14 );
+	r = xor256(r, _mm256_srli_si256( r_1 , 14 ));
 	return r;
 }
 
@@ -684,10 +685,10 @@ __m256i _mm256_alignr_254bit( __m256i high , __m256i low )
 	__m256i l_shr_14 = _mm256_srli_epi16( low , 14 );
 	__m256i h_shr_14 = _mm256_srli_epi16( high , 14 );
 	__m256i h_shl_2 = _mm256_slli_epi16( high , 2 );
-	__m256i r = h_shl_2^_mm256_slli_si256( h_shr_14 , 2 );
+	__m256i r = xor256(h_shl_2, _mm256_slli_si256( h_shr_14 , 2 ));
 
 	__m256i r_2 = _mm256_permute2x128_si256( l_shr_14 , h_shr_14 , 0x21 );
-	r ^= _mm256_srli_si256( r_2 , 14 );
+	r = xor256(r, _mm256_srli_si256( r_2 , 14 ));
 	return r;
 }
 
@@ -697,10 +698,10 @@ __m256i _mm256_alignr_252bit( __m256i high , __m256i low )
 	__m256i l_shr_12 = _mm256_srli_epi16( low , 12 );
 	__m256i h_shr_12 = _mm256_srli_epi16( high , 12 );
 	__m256i h_shl_4 = _mm256_slli_epi16( high , 4 );
-	__m256i r = h_shl_4^_mm256_slli_si256( h_shr_12 , 2 );
+	__m256i r = xor256(h_shl_4,_mm256_slli_si256( h_shr_12 , 2 ));
 
 	__m256i r_4 = _mm256_permute2x128_si256( l_shr_12 , h_shr_12 , 0x21 );
-	r ^= _mm256_srli_si256( r_4 , 14 );
+	r = xor256(r, _mm256_srli_si256( r_4 , 14 ));
 	return r;
 }
 
@@ -753,11 +754,11 @@ static inline
 void __sh_xor_down( __m256i* poly256 , unsigned unit , unsigned _op , __m256i zero )
 {
 	unsigned unit_2 = unit>>1;
-	poly256[unit_2] ^= _sh_op_zerohigh[_op](zero,poly256[unit-1]);
+	poly256[unit_2] = xor256(poly256[unit_2], _sh_op_zerohigh[_op](zero,poly256[unit-1]));
 	for(unsigned i=0;i<unit_2-1;i++) {
-		poly256[unit_2-1-i] ^= _sh_op[_op]( poly256[unit-1-i] , poly256[unit-2-i] );
+		poly256[unit_2-1-i] = xor256(poly256[unit_2 - 1 - i], _sh_op[_op]( poly256[unit-1-i] , poly256[unit-2-i] ));
 	}
-	poly256[0] ^= _sh_op[_op](poly256[unit_2],zero);
+	poly256[0] = xor256(poly256[0], _sh_op[_op](poly256[unit_2],zero));
 }
 
 
@@ -790,11 +791,11 @@ static inline
 void __sh_xor_up( __m256i* poly256 , unsigned unit , unsigned _op , __m256i zero )
 {
 	unsigned unit_2 = unit>>1;
-	poly256[0] ^= _sh_op[_op](poly256[unit_2],zero);
+	poly256[0] = xor256(poly256[0], _sh_op[_op](poly256[unit_2],zero));
 	for(unsigned i=0;i<unit_2-1;i++) {
-		poly256[i+1] ^= _sh_op[_op]( poly256[unit_2+i+1] , poly256[unit_2+i] );
+		poly256[i+1] = xor256(poly256[i + 1], _sh_op[_op]( poly256[unit_2+i+1] , poly256[unit_2+i] ));
 	}
-	poly256[unit_2] ^= _sh_op_zerohigh[_op](zero,poly256[unit-1]);
+	poly256[unit_2] = xor256(poly256[unit_2], _sh_op_zerohigh[_op](zero,poly256[unit-1]));
 }
 
 

@@ -26,7 +26,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 static inline
 void tr_ref_4x4_b8( uint8_t * _r , const uint8_t * a ) {
-	uint8_t r[4*4*8] __attribute__((aligned(32)));
+	uint8_t r[4*4*8] BIT_POLY_ALIGN(32);
 	for(unsigned j=0;j<4;j++) {
 		for(unsigned i=0;i<8;i++) {
 			r[j*32+i*4+0] = a[i*4+j+0];
@@ -39,7 +39,7 @@ void tr_ref_4x4_b8( uint8_t * _r , const uint8_t * a ) {
 }
 
 
-static uint8_t _tr_4x4[32] __attribute__((aligned(32))) = {0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15 ,0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15};
+static uint8_t _tr_4x4[32] BIT_POLY_ALIGN(32) = {0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15 ,0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15};
 
 static inline
 void tr_avx2_4x4_b8( uint8_t * _r , const uint8_t * a ) {
@@ -115,7 +115,7 @@ void tr_16x16_b2_from_4x4_b8( uint8_t * r , const uint8_t * a ) {
 
 static inline
 void tr_16x16_b2_avx2( uint8_t * r , const uint8_t * a ) {
-	uint8_t temp[32*16] __attribute__((aligned(32)));
+	uint8_t temp[32*16] BIT_POLY_ALIGN(32);
 	for(unsigned i=0;i<4;i++) tr_avx2_4x4_b8( temp + i*32*4 , a + i*32*4 );
 	tr_16x16_b2_from_4x4_b8_1_4( r , temp );
 	tr_16x16_b2_from_4x4_b8_1_4( r+32 , temp+32 );
@@ -250,7 +250,7 @@ void tr_4x4_b8_from_32x32( uint8_t * r , const uint8_t * a ) {
 
 static inline
 void tr_ref_16x16( uint8_t * _r , const uint8_t * a ) {
-        uint8_t r[16*16] __attribute__((aligned(32)));
+        uint8_t r[16*16] BIT_POLY_ALIGN(32);
         for(unsigned j=0;j<16;j++)
                 for(unsigned k=0;k<16;k++) r[j*16+k] = a[k*16+j];
         for(unsigned i=0;i<16*16;i++) _r[i] = r[i];
@@ -258,12 +258,12 @@ void tr_ref_16x16( uint8_t * _r , const uint8_t * a ) {
 
 //////////////////////////////////////
 
-static uint64_t gath_ref_16x32[4] __attribute__((aligned(32))) = {0,1*8,16*16,16*16+8 };
+static uint64_t gath_ref_16x32[4] BIT_POLY_ALIGN(32) = {0,1*8,16*16,16*16+8 };
 
 static inline
 void tr_ref_16x32( uint8_t * r , const uint8_t * a )
 {
-        uint8_t tr2[16*16*2] __attribute__((aligned(32)));
+        uint8_t tr2[16*16*2] BIT_POLY_ALIGN(32);
         tr_ref_16x16( tr2 , a );
         tr_ref_16x16( tr2+(16*16) , a+(16*16) );
 
@@ -292,19 +292,19 @@ void transpose_16x32( uint8_t * r , const uint8_t * a )
 }
 
 #if 0
-static uint64_t gath_32x16[4] __attribute__((aligned(32))) = {0, 8 , 32 , 40};
+static uint64_t gath_32x16[4] BIT_POLY_ALIGN(32) = {0, 8 , 32 , 40};
 #endif
 
 static inline
 void transpose_32x16( uint8_t * r , const uint8_t * a )
 {
 #if 1
-        uint8_t tr2[16*16*2] __attribute__((aligned(32)));
+        uint8_t tr2[16*16*2] BIT_POLY_ALIGN(32);
         for(unsigned j=0;j<32;j++)
                 for(unsigned k=0;k<16;k++) tr2[j*16+k] = a[k*32+j];
         for(unsigned i=0;i<32*16;i++) r[i] = tr2[i];
 #else
-        uint8_t tr2[16*16*2] __attribute__((aligned(32)));
+        uint8_t tr2[16*16*2] BIT_POLY_ALIGN(32);
         _mm256_store_si256( (__m256i*)(tr2+0 ) , _mm256_i64gather_epi64( (long long const*)(a  + 0) , *(__m256i*)gath_32x16 , 1 ) );
         _mm256_store_si256( (__m256i*)(tr2+32) , _mm256_i64gather_epi64( (long long const*)(a  + 16) , *(__m256i*)gath_32x16 , 1 ) );
         _mm256_store_si256( (__m256i*)(tr2+64) , _mm256_i64gather_epi64( (long long const*)(a  + 32) , *(__m256i*)gath_32x16 , 1 ) );

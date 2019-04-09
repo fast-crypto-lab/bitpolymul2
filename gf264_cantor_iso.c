@@ -18,9 +18,10 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 #include "stdint.h"
+#include "defines.h"
 
 
-uint64_t gfCantorto264[64*2] __attribute__((aligned(32))) = {
+uint64_t gfCantorto264[64*2] BIT_POLY_ALIGN(32) = {
  0x1, 0,
  0x19C9369F278ADC02, 0,
  0xA181E7D66F5FF794, 0,
@@ -89,7 +90,7 @@ uint64_t gfCantorto264[64*2] __attribute__((aligned(32))) = {
 
 
 #if 0
-uint64_t gfCantorto264_4R[(64/4)*16] __attribute__((aligned(32))) = {
+uint64_t gfCantorto264_4R[(64/4)*16] BIT_POLY_ALIGN(32) = {
 0x0,
 0x1,
 0x19c9369f278adc02,
@@ -351,7 +352,7 @@ uint64_t gfCantorto264_4R[(64/4)*16] __attribute__((aligned(32))) = {
 
 
 
-uint64_t gfCantorto264_8R[(64/8)*256*2] __attribute__((aligned(32))) = {
+uint64_t gfCantorto264_8R[(64/8)*256*2] BIT_POLY_ALIGN(32) = {
 0x0,0,
 0x1,0,
 0x19c9369f278adc02,0,

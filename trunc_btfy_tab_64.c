@@ -19,10 +19,10 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "stdint.h"
+#include "defines.h"
 
 
-
-uint64_t beta_mul_32 [64] __attribute__((aligned(32)))  = {
+uint64_t beta_mul_32 [64] BIT_POLY_ALIGN(32)  = {
 0x1,
 0xed57ce778f0d6244,
 0xb66864e6ec14b4d2,
@@ -90,7 +90,7 @@ uint64_t beta_mul_32 [64] __attribute__((aligned(32)))  = {
 };
 
 
-uint64_t i_beta_mul_32 [64] __attribute__((aligned(32)))  = {
+uint64_t i_beta_mul_32 [64] BIT_POLY_ALIGN(32)  = {
 0x1,
 0x8961b8a7841bfc6,
 0xfd56dc6306e45ec6,
@@ -159,7 +159,7 @@ uint64_t i_beta_mul_32 [64] __attribute__((aligned(32)))  = {
 
 
 
-uint64_t beta_mul_32_m4r [(64/4)*16] __attribute__((aligned(32)))  = {
+uint64_t beta_mul_32_m4r [(64/4)*16] BIT_POLY_ALIGN(32)  = {
 0x0,
 0x1,
 0xed57ce778f0d6244,
@@ -419,7 +419,7 @@ uint64_t beta_mul_32_m4r [(64/4)*16] __attribute__((aligned(32)))  = {
 };
 
 
-uint64_t i_beta_mul_32_m4r [(64/4)*16] __attribute__((aligned(32)))  = {
+uint64_t i_beta_mul_32_m4r [(64/4)*16] BIT_POLY_ALIGN(32)  = {
 0x0,
 0x1,
 0x8961b8a7841bfc6,
@@ -680,7 +680,7 @@ uint64_t i_beta_mul_32_m4r [(64/4)*16] __attribute__((aligned(32)))  = {
 
 
 
-uint64_t i_beta_mul_32_bm4r [(64/4)*16*2] __attribute__((aligned(32)))  = {
+uint64_t i_beta_mul_32_bm4r [(64/4)*16*2] BIT_POLY_ALIGN(32)  = {
 0x100c7c6c7c60100,0x405c2c3c2c30405, 0x100c7c6c7c60100,0x405c2c3c2c30405,
 0x9d6863960bfef500,0xfb0e05f06d989366, 0x9d6863960bfef500,0xfb0e05f06d989366,
 0xe1e15e5ebfbf0000,0xa0a01f1ffefe4141, 0xe1e15e5ebfbf0000,0xa0a01f1ffefe4141,
@@ -812,7 +812,7 @@ uint64_t i_beta_mul_32_bm4r [(64/4)*16*2] __attribute__((aligned(32)))  = {
 };
 
 
-uint64_t beta_mul_32_bm4r [(64/4)*16*2] __attribute__((aligned(32)))  = {
+uint64_t beta_mul_32_bm4r [(64/4)*16*2] BIT_POLY_ALIGN(32)  = {
 0x9796d3d245440100,0x8485c0c156571213, 0x9796d3d245440100,0x8485c0c156571213,
 0xe9b9e8b851015000,0x6d3d6c3cd585d484, 0xe9b9e8b851015000,0x6d3d6c3cd585d484,
 0xd6d6b4b462620000,0x74741616c0c0a2a2, 0xd6d6b4b462620000,0x74741616c0c0a2a2,
