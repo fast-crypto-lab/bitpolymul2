@@ -271,17 +271,20 @@ namespace bpm
         if (dest.size() != 2 * mN)
             throw RTE_LOC;
 
+        aligned_vector<u64> temp1( mPoly.begin(), mPoly.end());
+        aligned_vector<u64> temp2(mPoly.size());
+
+
         u64 log_n = oc::log2ceil(mNPow2);
-        i_btfy_128(mPoly.data(), mNPow2, 64 + log_n + 1);
+        i_btfy_128(temp1.data(), mNPow2, 64 + log_n + 1);
 
 
-        aligned_vector<u64> temp(mPoly.size());
-        decode_128(temp.data(), mPoly.data(), mNPow2);
+        decode_128(temp2.data(), temp1.data(), mNPow2);
 
-        bc_to_mono_2_unit256(temp.data(), 2 * mNPow2);
+        bc_to_mono_2_unit256(temp2.data(), 2 * mNPow2);
 
         // copy out
-        memcpy(dest.data(), temp.data(), dest.size() * sizeof(u64));
+        memcpy(dest.data(), temp2.data(), dest.size() * sizeof(u64));
     }
 
 }

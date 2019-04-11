@@ -64,9 +64,9 @@ int main(int argc, char ** argv)
     std::vector<uint64_t>
         poly1(len),
         poly2(len),
-        poly3(len * 2),
-        poly4(len * 2),
-        poly5(len * 2);
+        poly3(len),
+        rPoly1(len * 2),
+        rPoly2(len * 2);
 
 
     benchmark bm1;
@@ -89,24 +89,29 @@ int main(int argc, char ** argv)
     }
 
 
-    bm_func1(poly5.data(), poly2.data(), poly1.data(), len);
-    bm_func1(poly3.data(), poly1.data(), poly2.data(), len);
+    bm_func1(rPoly1.data(), poly2.data(), poly1.data(), len);
+    bm_func1(rPoly2.data(), poly1.data(), poly2.data(), len);
 
-    if (32 >= len) {
-        printf("poly1 :"); u64_dump(poly1.data(), len); puts("");
-        printf("poly2 :"); u64_dump(poly2.data(), len); puts("");
+    if (32 >= len && cmd.isSet("v")) {
+        printf("poly1 :"); u64_dump(poly1); puts("");
+        printf("poly2 :"); u64_dump(poly2); puts("");
 
-        printf("poly3 :"); u64_dump(poly3.data(), len * 2); puts("");
+        printf("rPoly1 :"); u64_dump(rPoly1); puts("");
 
-        if (poly3 != poly5) {
+        if (rPoly1 != rPoly2) {
             printf("consistency fail: \n");
-            printf("poly5 :"); u64_fdump(stdout, poly5.data(), len * 2); puts("");
+            printf("rPoly2 :"); u64_fdump(stdout, rPoly2); puts("");
         }
     }
 
 
-    bpm::FFTPoly fft1, fft2, fft3, fft4, fft5;
-
+    bpm::FFTPoly fft1, fft2, fft3, fft_12, fft_13;
+    auto vecAdd = [](std::vector<oc::u64> a, std::vector<oc::u64>& b)
+    {
+        for (oc::u64 i = 0; i < a.size(); ++i)
+            a[i] ^= b[i];
+        return a;
+    };
 
     uint64_t fail_count = 0;
     uint64_t chk = 0;
@@ -114,8 +119,9 @@ int main(int argc, char ** argv)
     {
         //prng.get(poly1.data(), poly1.size());
         //prng.get(poly2.data(), poly2.size());
-        for (uint64_t q = 0; q < len; q++) { poly1[q] = q + 1 + i * i + 321434123377; }
-        for (uint64_t q = 0; q < len; q++) { poly2[q] = q + 2 + i * i + 463254234534; }
+        for (uint64_t q = 0; q < len; q++) { poly1[q] = q + 1 + i; }   // i * i + 321434123377;
+        for (uint64_t q = 0; q < len; q++) { poly2[q] = q + 2 + i; }   // i * i + 463254234534;
+        for (uint64_t q = 0; q < len; q++) { poly3[q] = q + 3 + i; }   // i * i + 463254234534;
 
 
 
@@ -123,29 +129,42 @@ int main(int argc, char ** argv)
         auto back2 = poly2;
 
         BENCHMARK(bm1, {
-                bm_func1(poly3.data() , poly2.data() , poly1.data() , len);
+                bm_func1(rPoly1.data() , poly2.data() , poly1.data() , len);
             });
 
 
         BENCHMARK(bm2, {
-                bm_func2(poly4.data() , poly2.data() , poly1.data() , len);
+                bm_func2(rPoly2.data() , poly2.data() , poly1.data() , len);
             });
 
 
+        //fft1.encode(poly1);
+        //fft2.encode(poly2);
+        //fft1.addEq(fft2);
+        //fft1.decode(poly5);
 
-        if (poly3 != poly4) {
+        //auto x = vecAdd(poly1, poly2);
+        //x.resize(poly5.size());
+        //if (poly5 != x)
+        //{
+        //    std::cout << "add plain failed." << std::endl;
+        //    printf("res1:"); u64_fdump(stdout, poly5); puts("");
+        //    printf("resX:"); u64_fdump(stdout, x); puts("");
+        //}
+
+        if (rPoly1 != rPoly2) {
             fail_count++;
             if (cmd.isSet("v"))
             {
 
                 printf("consistency fail: %d.\n", i);
-                printf("res1:"); u64_fdump(stdout, poly3.data(), len * 2); puts("");
-                printf("res2:"); u64_fdump(stdout, poly4.data(), len * 2); puts("");
-                printf("diff:"); u64_fdump(stdout, poly5.data(), len * 2); puts("");
+                printf("res1:"); u64_fdump(stdout, rPoly1); puts("");
+                printf("res2:"); u64_fdump(stdout, rPoly2); puts("");
+                //printf("diff:"); u64_fdump(stdout, poly5); puts("");
 
-                bitpolymul_2_64(poly5.data(), poly2.data(), poly1.data(), len);
+                bitpolymul_2_64(rPoly1.data(), poly2.data(), poly1.data(), len);
 
-                printf("res3:"); u64_fdump(stdout, poly3.data(), len * 2); puts("");
+                printf("res3:"); u64_fdump(stdout, rPoly1); puts("");
 
                 if (back1 != poly1) printf("back 1 failed");
                 if (back2 != poly2) printf("back 2 failed");
@@ -153,22 +172,40 @@ int main(int argc, char ** argv)
             }
         }
 
-        bm_func2(poly5.data(), poly1.data(), poly3.data(), len);
-        byte_xor(poly5.data(), poly4.data(), len * 2);
+        //bm_func2(poly5.data(), poly1.data(), poly3.data(), len);
+        ////byte_xor(poly5.data(), poly4.data(), len * 2);
+        //poly5 = vecAdd(poly5, poly4);
+
+
 
         fft1.encode(poly1);
         fft2.encode(poly2);
-        fft3.encode(poly2);
+        fft3.encode(poly3);
 
-        fft4.mult(fft1, fft2);
-        fft5.mult(fft1, fft3);
+        std::vector<oc::u64> 
+            poly_12(len * 2),
+            poly_13(len * 2),
+            fft_r(len*2);
+        //auto fft_12_13 = fft3;
 
-        fft5.addEq(fft4);
+        fft_12.mult(fft1, fft2);
+        fft_13.mult(fft1, fft3);
 
-        fft5.decode(poly4);
+        fft_12.decode(poly_12);
+        fft_13.decode(poly_13);
 
-        if (poly4 != poly5)
+        bpm::FFTPoly fft_12_13;
+        fft_12_13.add(fft_13, fft_12);
+
+        auto poly_r = vecAdd(poly_12, poly_13);
+        fft_12_13.decode(fft_r);
+
+        if (poly_r != fft_r)
         {
+
+            std::cout << "add plain failed." << std::endl;
+            printf("poly_r:"); u64_fdump(stdout, poly_r); puts("");
+            printf("fft_r: "); u64_fdump(stdout, fft_r); puts("");
             chk++;
         }
 

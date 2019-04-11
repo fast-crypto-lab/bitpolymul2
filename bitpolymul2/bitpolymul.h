@@ -61,7 +61,6 @@ namespace bpm
 
         u64 mN = 0, mNPow2 = 0;
         std::vector<u64> mPoly;
-        std::vector<u64> temp;
 
         void resize(u64 n);
 

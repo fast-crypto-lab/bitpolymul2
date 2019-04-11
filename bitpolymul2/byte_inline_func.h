@@ -24,7 +24,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdlib.h>
 #include <stdint.h>
 #include "bitpolymul2/defines.h"
-
+#include <cryptoTools/gsl/gsl>
 
 static inline
 unsigned byte_is_zero( const uint64_t * vec , unsigned n ) { unsigned r=0; for(unsigned i=0;i<n;i++) r|= vec[i]; return (0==r); }
@@ -40,9 +40,9 @@ static inline
 void byte_rand( uint8_t * vec , unsigned n ) { for(unsigned i=0;i<n;i++) vec[i] = rand()&0xff; }
 
 static inline
-void u64_fdump( FILE * fp, const uint64_t *v, unsigned _num_u64) {
-	fprintf(fp,"[%2d][",_num_u64);
-	for(unsigned i=0;i<_num_u64;i++) { fprintf(fp,"0x%02lx,",v[i]); if(7==(i%8)) fprintf(fp," ");}
+void u64_fdump( FILE * fp, gsl::span<const uint64_t> v) {
+	fprintf(fp,"[%2d][", v.size());
+	for(unsigned i=0;i< v.size();i++) { fprintf(fp,"0x%02lx,",v[i]); if(7==(i%8)) fprintf(fp," ");}
 	fprintf(fp,"]");
 }
 
@@ -54,7 +54,7 @@ void byte_fdump( FILE * fp, const uint8_t *v, unsigned _num_byte) {
 }
 
 static inline
-void u64_dump( const uint64_t *v, unsigned _num_u64 ) { u64_fdump(stdout,v,_num_u64); }
+void u64_dump(gsl::span<const uint64_t>v) { u64_fdump(stdout,v); }
 
 static inline
 void byte_dump( const uint8_t *v, unsigned _num_byte ) { byte_fdump(stdout,v,_num_byte); }
