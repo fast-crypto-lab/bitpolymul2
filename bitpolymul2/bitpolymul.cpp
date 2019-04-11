@@ -201,7 +201,7 @@ namespace bpm
         if (! mN)
             return;
 
-        u64 log_n = oc::log2ceil(mN);
+        u64 log_n = oc::log2ceil(mNPow2);
 
 
         // encode a
@@ -271,7 +271,7 @@ namespace bpm
         if (dest.size() != 2 * mN)
             throw RTE_LOC;
 
-        u64 log_n = oc::log2ceil(mN);
+        u64 log_n = oc::log2ceil(mNPow2);
         i_btfy_128(mPoly.data(), mNPow2, 64 + log_n + 1);
 
 
