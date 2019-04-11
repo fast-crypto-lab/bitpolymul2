@@ -24,21 +24,12 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
-
-
 
 void butterfly_net_half_inp_clmul( uint64_t * fx , unsigned n_fx );
 
 void i_butterfly_net_clmul( uint64_t * fx , unsigned n_fx );
 
 
-
-#ifdef  __cplusplus
-}
-#endif
 
 
 #endif

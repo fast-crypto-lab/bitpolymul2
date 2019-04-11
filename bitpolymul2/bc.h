@@ -25,9 +25,6 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
 
 
 typedef uint64_t bc_sto_t;
@@ -58,11 +55,6 @@ void bc_to_lch_2_unit256( bc_sto_t * poly , unsigned n_terms );
 
 void bc_to_mono_2_unit256( bc_sto_t * poly , unsigned n_terms );
 
-
-
-#ifdef  __cplusplus
-}
-#endif
 
 
 

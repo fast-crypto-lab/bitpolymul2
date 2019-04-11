@@ -16,7 +16,7 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
-
+#include "bitpolymul.h"
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -32,6 +32,10 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "gfext_aesni.h"
 #include "defines.h"
+#include <cryptoTools/Common/Defines.h>
+#include <vector>
+
+using namespace oc;
 
 #ifdef _PROFILE_
 
@@ -165,6 +169,135 @@ void bitpolymul_simple(uint64_t * c, const uint64_t * a, const uint64_t * b, uns
 #include "btfy.h"
 #include "encode.h"
 
+
+namespace bpm
+{
+    void FFTPoly::resize(u64 n)
+    {
+        if (mN == n)
+            return;
+
+        if (n == 0)
+        {
+            mN = 0;
+            mNPow2 = 0;
+            mPoly.clear();
+        }
+        else
+        {
+            mN = n;
+            // round up to the next power of 2
+            u64 log_n = oc::log2ceil(mN);
+            mNPow2 = std::max<u64>(1ull << log_n, 256);
+            mPoly.resize(2 * mNPow2);
+        }
+    }
+
+
+    void FFTPoly::encode(span<const u64> data)
+    {
+        resize(data.size());
+
+        if (! mN)
+            return;
+
+        u64 log_n = oc::log2ceil(mN);
+
+
+        // encode a
+        aligned_vector<u64> temp;
+        temp.reserve(mNPow2);
+        temp.insert(temp.end(), data.begin(), data.end());
+        temp.resize(mNPow2);
+
+        bc_to_lch_2_unit256(temp.data(), mNPow2);
+        encode_128_half_input_zero(mPoly.data(), temp.data(), mNPow2);
+        btfy_128(mPoly.data(), mNPow2, 64 + log_n + 1);
+    }
+
+
+    void FFTPoly::multEq(const FFTPoly& b)
+    {
+        mult(*this, b);
+    }
+    void FFTPoly::mult(const FFTPoly& a, const FFTPoly& b)
+    {
+        if (a.mNPow2 != b.mNPow2)
+            throw RTE_LOC;
+
+        resize(a.mN);
+
+        for (uint64_t i = 0; i < mNPow2; i++)
+        {
+            // mPoly = a.mPoly * b.mPoly
+            gf2ext128_mul_sse(
+                (uint8_t*)&mPoly[i * 2],
+                (uint8_t*)&a.mPoly[i * 2],
+                (uint8_t*)&b.mPoly[i * 2]);
+        }
+    }
+
+    void FFTPoly::addEq(const FFTPoly& b)
+    {
+        add(*this, b);
+    }
+
+    void FFTPoly::add(const FFTPoly& a, const FFTPoly& b)
+    {
+        if (a.mNPow2 != b.mNPow2)
+            throw RTE_LOC;
+
+        resize(a.mN);
+
+        auto aPtr = (block*)a.mPoly.data();
+        auto bPtr = (block*)b.mPoly.data();
+        auto cPtr = (block*)mPoly.data();
+
+        for (uint64_t i = 0; i < mPoly.size(); i++)
+        {
+            mPoly[i] = a.mPoly[i] ^ b.mPoly[i];
+            //block cc = _mm_load_si128(aPtr) ^ _mm_load_si128(bPtr);
+            //_mm_store_si128(cPtr, cc);
+
+            //++aPtr;
+            //++bPtr;
+            //++cPtr;
+        }
+    }
+
+
+    void FFTPoly::decode(span<u64> dest)
+    {
+        if (dest.size() != 2 * mN)
+            throw RTE_LOC;
+
+        u64 log_n = oc::log2ceil(mN);
+        i_btfy_128(mPoly.data(), mNPow2, 64 + log_n + 1);
+
+
+        aligned_vector<u64> temp(mPoly.size());
+        decode_128(temp.data(), mPoly.data(), mNPow2);
+
+        bc_to_mono_2_unit256(temp.data(), 2 * mNPow2);
+
+        // copy out
+        memcpy(dest.data(), temp.data(), dest.size() * sizeof(u64));
+    }
+
+}
+
+void bitpolymul(uint64_t * c, const uint64_t * a, const uint64_t * b, uint64_t _n_64)
+{
+    i64 n = i64(_n_64);
+    bpm::FFTPoly A(span<const u64>(a, n));
+    bpm::FFTPoly B(span<const u64>(b, n));
+
+    A.multEq(B);
+
+    A.decode({ c, 2 * n });
+}
+
+
 void bitpolymul_2_128(uint64_t * c, const uint64_t * a, const uint64_t * b, unsigned _n_64)
 {
     if (0 == _n_64) return;
@@ -192,7 +325,7 @@ void bitpolymul_2_128(uint64_t * c, const uint64_t * a, const uint64_t * b, unsi
     for (unsigned i = _n_64; i < n_64; i++) a_bc[i] = 0;
 
     bc_to_lch_2_unit256(a_bc, n_64);
-    
+
     memcpy(b_bc, b, sizeof(uint64_t)*_n_64);
     for (unsigned i = _n_64; i < n_64; i++) b_bc[i] = 0;
 
@@ -356,8 +489,8 @@ void bitpolymul_2_64(uint64_t * c, const uint64_t * a, const uint64_t * b, unsig
     bm_start(&bm_pointmul);
 #endif
     for (unsigned i = 0; i < n_terms; i += 4) {
-        _mm_prefetch(&a_fx[i + 4], _MM_HINT_T0);
-        _mm_prefetch(&b_fx[i + 4], _MM_HINT_T0);
+        cache_prefetch(&a_fx[i + 4], _MM_HINT_T0);
+        cache_prefetch(&b_fx[i + 4], _MM_HINT_T0);
         gf2ext64_mul_4x4_avx2((uint8_t *)&a_fx[i], (uint8_t *)&a_fx[i], (uint8_t*)& b_fx[i]);
     }
 #ifdef _PROFILE_

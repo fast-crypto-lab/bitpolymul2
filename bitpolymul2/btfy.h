@@ -24,11 +24,6 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
-
-
 
 void btfy_128( uint64_t * fx , unsigned n_fx , unsigned scalar_a );
 
@@ -40,10 +35,6 @@ void btfy_64( uint64_t * fx , unsigned n_fx , unsigned scalar_a );
 void i_btfy_64( uint64_t * fx , unsigned n_fx , unsigned scalar_a );
 
 
-
-#ifdef  __cplusplus
-}
-#endif
 
 
 #endif

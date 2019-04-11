@@ -1,6 +1,16 @@
 #pragma once
 
 #include <stdint.h>
+#include <cryptoTools/common/Defines.h>
+#include <vector>
+#include <boost/align/aligned_allocator.hpp>
+
+namespace bpm
+{
+    template <typename T>
+    using aligned_vector = std::vector<T, boost::alignment::aligned_allocator<T, 32>>;
+}
+
 
 #ifdef _MSC_VER
 #include <intrin.h>
@@ -42,6 +52,8 @@ static inline int __builtin_clzl(unsigned long long x) { return __builtin_clzll(
 #endif
 
 #include <immintrin.h>
+#include <mmintrin.h>
+#include <xmmintrin.h>
 
 #define xor128(v1,v2) _mm_xor_si128(v1,v2)
 #define xor256(v1,v2) _mm256_xor_si256(v1,v2)
@@ -49,3 +61,15 @@ static inline int __builtin_clzl(unsigned long long x) { return __builtin_clzll(
 #define and256(v1,v2) _mm256_and_si256(v1,v2)
 #define or128(v1,v2) _mm_or_si128(v1,v2)
 #define or256(v1,v2) _mm256_or_si256(v1,v2)
+
+
+#define cache_prefetch(d, p) _mm_prefetch((const char*)d, p)
+//
+//inline void cache_prefetch(__m128i* d, int p)
+//{
+//    _mm_prefetch((const char*)d, p);
+//}
+//inline void cache_prefetch(__m256i* d, int p)
+//{
+//    _mm_prefetch((const char*)d, p);
+//}

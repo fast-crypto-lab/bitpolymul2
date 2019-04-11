@@ -65,8 +65,8 @@ unsigned get_max_si( unsigned deg ) {
 #include <emmintrin.h>
 #include <immintrin.h>
 
-#include "bc_to_mono_gen_code.c"
-#include "bc_to_lch_gen_code.c"
+#include "bc_to_mono_gen_code.cpp"
+#include "bc_to_lch_gen_code.cpp"
 
 
 #define LOG2(X) ((unsigned) (8*sizeof (unsigned long long) - __builtin_clzll((X)) - 1))

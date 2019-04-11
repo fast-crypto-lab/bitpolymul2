@@ -22,7 +22,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdint.h>
 #include <immintrin.h>
-
+#include "defines.h"
 
 static inline
 void tr_ref_4x4_b8( uint8_t * _r , const uint8_t * a ) {

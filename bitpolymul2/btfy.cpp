@@ -76,8 +76,8 @@ __m128i butterfly( __m128i * poly , unsigned unit , unsigned ska , __m128i extra
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
 		poly[i] = xor128(poly[i] , _gf2ext128_mul_sse( poly[unit_2+i] , a ));
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
 		poly[unit_2+i] = xor128(poly[unit_2 + i], poly[i]);
 	}
 	return a;
@@ -94,8 +94,8 @@ __m128i butterfly_avx2( __m256i * poly , unsigned unit , unsigned ska , __m128i 
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
 		poly[i] = xor256(poly[i], _gf2ext128_mul_2x1_avx2( poly[unit_2+i] , a ));
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
 		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
 	}
 	return a;
@@ -112,16 +112,16 @@ __m128i butterfly_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m12
 	for(unsigned i=0;i<unit_2;i+=2) {
 		__m256i p0 = _mm256_load_si256( &poly[unit_2+i] );
 		__m256i p1 = _mm256_load_si256( &poly[unit_2+i+1] );
-		_mm_prefetch( &poly[i] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		__m256i ap0 = _gf2ext128_mul_2x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext128_mul_2x1_avx2( p1 , a );
 
 		__m256i q0 = _mm256_load_si256( &poly[i] );
 		__m256i q1 = _mm256_load_si256( &poly[i+1] );
 
-		_mm_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
 
 		q0 = xor256(q0, ap0);
 		q1 = xor256(q1, ap1);
@@ -148,10 +148,10 @@ __m128i butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m12
 		__m256i p1 = _mm256_load_si256( &poly[unit_2+i+1] );
 		__m256i p2 = _mm256_load_si256( &poly[unit_2+i+2] );
 		__m256i p3 = _mm256_load_si256( &poly[unit_2+i+3] );
-		_mm_prefetch( &poly[i] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+3] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+2] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+3] , _MM_HINT_T0 );
 		__m256i ap0 = _gf2ext128_mul_2x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext128_mul_2x1_avx2( p1 , a );
 		__m256i ap2 = _gf2ext128_mul_2x1_avx2( p2 , a );
@@ -162,10 +162,10 @@ __m128i butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m12
 		__m256i q2 = _mm256_load_si256( &poly[i+2] );
 		__m256i q3 = _mm256_load_si256( &poly[i+3] );
 
-		_mm_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
 
 		q0 = xor256(q0, ap0);
         q1 = xor256(q1, ap1);
@@ -199,8 +199,8 @@ __m128i i_butterfly( __m128i * poly , unsigned unit , unsigned ska , __m128i ext
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
 		poly[unit_2+i] = xor128(poly[unit_2 + i], poly[i]);
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
 		poly[i] = xor128(poly[i], _gf2ext128_mul_sse( poly[unit_2+i] , a ));
 	}
 	return a;
@@ -217,8 +217,8 @@ __m128i i_butterfly_avx2( __m256i * poly , unsigned unit , unsigned ska , __m128
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
 		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
 		poly[i] = xor256(poly[i], _gf2ext128_mul_2x1_avx2( poly[unit_2+i] , a ));
 	}
 	return a;
@@ -242,10 +242,10 @@ __m128i i_butterfly_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __m
         p1 = xor256(p1, q1);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
-		_mm_prefetch( &poly[i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+3] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
+		cache_prefetch((const char*) &poly[i+2] , _MM_HINT_T0 );
+		cache_prefetch((const char*)&poly[i+3] , _MM_HINT_T0 );
+		cache_prefetch((const char*)&poly[unit_2+i+2] , _MM_HINT_T0 );
+		cache_prefetch((const char*) &poly[unit_2+i+3] , _MM_HINT_T0 );
 
 		__m256i ap0 = _gf2ext128_mul_2x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext128_mul_2x1_avx2( p1 , a );
@@ -286,14 +286,14 @@ __m128i i_butterfly_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __m
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm256_store_si256( &poly[unit_2+i+2] , p2 );
 		_mm256_store_si256( &poly[unit_2+i+3] , p3 );
-		_mm_prefetch( &poly[i+4] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+5] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+6] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+7] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+4] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+5] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+6] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+7] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
 
 		__m256i ap0 = _gf2ext128_mul_2x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext128_mul_2x1_avx2( p1 , a );
@@ -591,7 +591,7 @@ __m128i butterfly_64_u2( __m128i * poly , unsigned ska , __m128i extra_a ) /// u
 	__m128i a = extra_a;
 	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = butterfly_64_xmm( poly[0] , a );
-	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
+	cache_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
 }
 
@@ -601,7 +601,7 @@ __m128i i_butterfly_64_u2( __m128i * poly , unsigned ska , __m128i extra_a ) ///
 	__m128i a = extra_a;
 	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = i_butterfly_64_xmm( poly[0] , a );
-	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
+	cache_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
 }
 
@@ -638,7 +638,7 @@ __m128i butterfly_64_u4( __m256i * poly , unsigned ska , __m128i extra_a ) /// u
 	__m128i a = extra_a;
 	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = butterfly_64_ymm( poly[0] , a );
-	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
+	cache_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
 }
 
@@ -648,7 +648,7 @@ __m128i i_butterfly_64_u4( __m256i * poly , unsigned ska , __m128i extra_a ) ///
 	__m128i a = extra_a;
 	a = xor128(a, gf264_isomorphism( ska ));
 	poly[0] = i_butterfly_64_ymm( poly[0] , a );
-	_mm_prefetch( &poly[1] , _MM_HINT_T0 );
+	cache_prefetch( &poly[1] , _MM_HINT_T0 );
 	return a;
 }
 
@@ -665,8 +665,8 @@ __m128i butterfly_64_avx2( __m256i * poly , unsigned unit , unsigned ska , __m12
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
 		poly[i] = xor256(poly[i], _gf2ext64_mul_4x1_avx2( poly[unit_2+i] , a ));
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
 		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
 	}
 	return a;
@@ -683,16 +683,16 @@ __m128i butterfly_64_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , __
 	for(unsigned i=0;i<unit_2;i+=2) {
 		__m256i p0 = _mm256_load_si256( &poly[unit_2+i] );
 		__m256i p1 = _mm256_load_si256( &poly[unit_2+i+1] );
-		_mm_prefetch( &poly[i] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
 		__m256i ap0 = _gf2ext64_mul_4x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext64_mul_4x1_avx2( p1 , a );
 
 		__m256i q0 = _mm256_load_si256( &poly[i] );
 		__m256i q1 = _mm256_load_si256( &poly[i+1] );
 
-		_mm_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
 
 		q0 = xor256(q0, ap0);
 		q1 = xor256(q1, ap1);
@@ -719,10 +719,10 @@ __m128i butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __
 		__m256i p1 = _mm256_load_si256( &poly[unit_2+i+1] );
 		__m256i p2 = _mm256_load_si256( &poly[unit_2+i+2] );
 		__m256i p3 = _mm256_load_si256( &poly[unit_2+i+3] );
-		_mm_prefetch( &poly[i] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+3] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+2] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+3] , _MM_HINT_T0 );
 		__m256i ap0 = _gf2ext64_mul_4x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext64_mul_4x1_avx2( p1 , a );
 		__m256i ap2 = _gf2ext64_mul_4x1_avx2( p2 , a );
@@ -733,10 +733,10 @@ __m128i butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , __
 		__m256i q2 = _mm256_load_si256( &poly[i+2] );
 		__m256i q3 = _mm256_load_si256( &poly[i+3] );
 
-		_mm_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
 
 		q0 = xor256(q0, ap0);
         q1 = xor256(q1, ap1);
@@ -771,8 +771,8 @@ __m128i i_butterfly_64_avx2( __m256i * poly , unsigned unit , unsigned ska , __m
 	unsigned unit_2= unit/2;
 	for(unsigned i=0;i<unit_2;i++) {
 		poly[unit_2+i] = xor256(poly[unit_2 + i], poly[i]);
-		_mm_prefetch( &poly[i+1] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+1] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+1] , _MM_HINT_T0 );
 		poly[i] = xor256(poly[i], _gf2ext64_mul_4x1_avx2( poly[unit_2+i] , a ));
 	}
 	return a;
@@ -797,10 +797,10 @@ __m128i i_butterfly_64_avx2_b2( __m256i * poly , unsigned unit , unsigned ska , 
 		p1 = xor256(p1, q1);
 		_mm256_store_si256( &poly[unit_2+i] , p0 );
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
-		_mm_prefetch( &poly[i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+3] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+2] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+3] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+2] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+3] , _MM_HINT_T0 );
 
 		__m256i ap0 = _gf2ext64_mul_4x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext64_mul_4x1_avx2( p1 , a );
@@ -841,14 +841,14 @@ __m128i i_butterfly_64_avx2_b4( __m256i * poly , unsigned unit , unsigned ska , 
 		_mm256_store_si256( &poly[unit_2+i+1] , p1 );
 		_mm256_store_si256( &poly[unit_2+i+2] , p2 );
 		_mm256_store_si256( &poly[unit_2+i+3] , p3 );
-		_mm_prefetch( &poly[i+4] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+5] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+6] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[i+7] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
-		_mm_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+4] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+5] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+6] , _MM_HINT_T0 );
+		cache_prefetch( &poly[i+7] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+4] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+5] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+6] , _MM_HINT_T0 );
+		cache_prefetch( &poly[unit_2+i+7] , _MM_HINT_T0 );
 
 		__m256i ap0 = _gf2ext64_mul_4x1_avx2( p0 , a );
 		__m256i ap1 = _gf2ext64_mul_4x1_avx2( p1 , a );

@@ -23,9 +23,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "stdint.h"
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
+
 
 
 
@@ -45,9 +43,7 @@ extern uint64_t i_beta_mul_64_bm4r_ext_8 [];
 
 
 
-#ifdef  __cplusplus
-}
-#endif
+
 
 
 #endif

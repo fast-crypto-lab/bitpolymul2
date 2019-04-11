@@ -24,9 +24,6 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
 
 
 
@@ -48,9 +45,6 @@ void decode_64( uint64_t * rfx , const uint64_t * fx , unsigned n_fx );
 
 
 
-#ifdef  __cplusplus
-}
-#endif
 
 
 #endif

@@ -1,15 +1,22 @@
+cmake_minimum_required (VERSION 3.8)
+
+
+include("${CMAKE_CURRENT_SOURCE_DIR}/../msvc_runtime.cmake")
+configure_msvc_runtime()
+
+
 
 # add the source files 
 set(SRCS 
-    "bc.c" 
-    "bitpolymul.c" 
-    "encode.c" 
-    "butterfly_net.c" 
-    "gf2128_cantor_iso.c" 
-    "btfy.c" 
-    "trunc_btfy_tab.c" 
-    "gf264_cantor_iso.c" 
-    "trunc_btfy_tab_64.c")
+    "bc.cpp" 
+    "bitpolymul.cpp" 
+    "encode.cpp" 
+    "butterfly_net.cpp" 
+    "gf2128_cantor_iso.cpp" 
+    "btfy.cpp" 
+    "trunc_btfy_tab.cpp" 
+    "gf264_cantor_iso.cpp" 
+    "trunc_btfy_tab_64.cpp")
 
 add_library(bitpolymul2 STATIC ${SRCS})
 
@@ -50,11 +57,43 @@ endif()
 
 
 #CFLAGS= -O3 -funroll-loops -mavx2 -mpclmul -std=gnu99                            -Wextra -Wall
-target_compile_options(bitpolymul2 PUBLIC "-O3" "-funroll-loops" "-mavx2" "-mpclmul" "-std=gnu99" "-Wall")
+if(MSVC)
+    target_compile_options(bitpolymul2 PUBLIC  "/arch:AVX2")
+ 
+else(MSVC)
+    target_compile_options(bitpolymul2 PUBLIC "-O3" "-funroll-loops" "-mavx2" "-mpclmul")
+endif(MSVC)
 
 
+set(libOTeDir "${CMAKE_CURRENT_SOURCE_DIR}/../../libOTe")
 
 
 # make projects that include bitpolymul2 use this as an include folder
 target_include_directories(bitpolymul2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
+target_include_directories(bitpolymul2 PUBLIC "${libOTeDir}/cryptoTools")
+
+target_link_libraries(bitpolymul2 PUBLIC "${libOTeDir}/x64/release/cryptoTools.lib")
+
+
+
+
+## Boost
+###########################################################################
+
+set(BOOST_ROOT "${libOTeDir}/cryptoTools/thirdparty/linux/boost/")
+
+set(Boost_USE_STATIC_LIBS        ON) # only find static libs
+set(Boost_USE_MULTITHREADED      ON)
+set(Boost_USE_STATIC_RUNTIME     ON)
+
+find_package(Boost 1.66.0 COMPONENTS system thread)
+
+
+if(NOT Boost_FOUND)
+    message(FATAL_ERROR "Failed to find boost 1.66.0 or newer. Looked at system dirs and: " ${BOOST_ROOT})
+endif()
+
+
+target_include_directories(bitpolymul2 PUBLIC ${Boost_INCLUDE_DIR}) 
+target_link_libraries(bitpolymul2 PUBLIC ${Boost_LIBRARIES})
 

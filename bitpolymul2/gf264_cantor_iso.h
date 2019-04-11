@@ -24,9 +24,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
+
 
 
 extern uint64_t gfCantorto264[];
@@ -34,9 +32,6 @@ extern uint64_t gfCantorto264[];
 extern uint64_t gfCantorto264_8R[];
 
 
-#ifdef  __cplusplus
-}
-#endif
 
 
 #endif
