@@ -9,6 +9,7 @@
 #include "bitpolymul2/config_profile.h"
 
 #include "bitpolymul2/defines.h"
+#include <cryptoTools/Common/CLP.h>
 
 #define TEST_RUN 20
 
@@ -45,16 +46,17 @@ void mul(uint64_t * c, const uint64_t * a, const uint64_t * b, unsigned _n_64)
 
 int main(int argc, char ** argv)
 {
+    oc::CLP cmd(argc, argv);
 
-    uint64_t len = (1ull << 16);
-    if (2 == argc) {
-        int log = atoi(argv[1]);
-        if (log > 30 || 0 == log) {
-            printf("Benchmark binary polynomial multiplications.\nUsage: exe [log2_len]\n\n");
-            exit(-1);
-        }
-        len = 1 << log;
-    }
+    uint64_t len = (1ull << cmd.getOr("n", 16));
+    //if (2 == argc) {
+    //    int log = atoi(argv[1]);
+    //    if (log > 30 || 0 == log) {
+    //        printf("Benchmark binary polynomial multiplications.\nUsage: exe [log2_len]\n\n");
+    //        exit(-1);
+    //    }
+    //    len = 1 << log;
+    //}
 
     printf("Multiplication test:\ninput poly len: 2^%d x 64 bit. Benchmark in micro seconds.\n", oc::log2ceil(len));
 
@@ -112,6 +114,8 @@ int main(int argc, char ** argv)
         prng.get(poly1.data(), poly1.size());
         prng.get(poly2.data(), poly2.size());
 
+        auto back1 = poly1;
+        auto back2 = poly2;
 
         BENCHMARK(bm1, {
                 bm_func1(poly3.data() , poly2.data() , poly1.data() , len);
@@ -122,14 +126,26 @@ int main(int argc, char ** argv)
                 bm_func2(poly4.data() , poly2.data() , poly1.data() , len);
             });
 
-        if(poly3 != poly4){
+
+
+        if (poly3 != poly4) {
             fail_count++;
-            //printf("consistency fail: %d.\n", i);
-            //printf("res1:"); u64_fdump(stdout, poly3, len * 2); puts("");
-            //printf("res2:"); u64_fdump(stdout, poly4, len * 2); puts("");
-            //printf("diff:"); u64_fdump(stdout, poly5, len * 2); puts("");
-            //printf("\n");
-            //exit(-1);
+            if (cmd.isSet("v"))
+            {
+
+                printf("consistency fail: %d.\n", i);
+                printf("res1:"); u64_fdump(stdout, poly3.data(), len * 2); puts("");
+                printf("res2:"); u64_fdump(stdout, poly4.data(), len * 2); puts("");
+                printf("diff:"); u64_fdump(stdout, poly5.data(), len * 2); puts("");
+
+                bitpolymul_2_64(poly5.data(), poly2.data(), poly1.data(), len);
+
+                printf("res3:"); u64_fdump(stdout, poly3.data(), len * 2); puts("");
+
+                if (back1 != poly1) printf("back 1 failed");
+                if (back2 != poly2) printf("back 2 failed");
+                printf("\n");
+            }
         }
 
         bm_func2(poly5.data(), poly1.data(), poly3.data(), len);

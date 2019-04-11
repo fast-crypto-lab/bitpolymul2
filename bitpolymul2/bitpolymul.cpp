@@ -300,112 +300,114 @@ void bitpolymul(uint64_t * c, const uint64_t * a, const uint64_t * b, uint64_t _
 
 void bitpolymul_2_128(uint64_t * c, const uint64_t * a, const uint64_t * b, unsigned _n_64)
 {
-    if (0 == _n_64) return;
-    unsigned n_64 = 0;
-    if (1 == _n_64) n_64 = _n_64;
-    else {
-        unsigned log_2_n64 = LOG2(_n_64);
-        unsigned log_2_n64_1 = LOG2(_n_64 - 1);
-        if (log_2_n64 == log_2_n64_1)log_2_n64 += 1;
-        n_64 = 1 << log_2_n64;
-    }
+    if( 0 == _n_64 ) return;
+	unsigned n_64 = 0;
+	if( 1 == _n_64 ) n_64 = _n_64;
+	else {
+		unsigned log_2_n64 = LOG2(_n_64);
+		unsigned log_2_n64_1 = LOG2(_n_64-1);
+		if( log_2_n64 == log_2_n64_1 )log_2_n64 += 1;
+		n_64 = 1<<log_2_n64;
+	}
 
-    if (256 > n_64) n_64 = 256;
+	if( 256 > n_64 ) n_64 = 256;
 
-    uint64_t * a_bc = (uint64_t*)aligned_alloc(32, sizeof(uint64_t)*n_64);
-    if (NULL == a_bc) { printf("alloc fail.\n"); exit(-1); }
-
-    uint64_t * b_bc = (uint64_t*)aligned_alloc(32, sizeof(uint64_t)*n_64);
-    if (NULL == b_bc) { printf("alloc fail.\n"); exit(-1); }
+	uint64_t * a_bc = (uint64_t*)aligned_alloc( 32 , sizeof(uint64_t)*n_64 );
+		//uint64_t * a_bc = (uint64_t*)aligned_alloc( 32 , sizeof(uint64_t)*n_64*2 );
+	if( NULL == a_bc ) { printf("alloc fail.\n"); exit(-1); }
+	uint64_t * b_bc = (uint64_t*)aligned_alloc( 32 , sizeof(uint64_t)*n_64 );
+		//uint64_t * b_bc = (uint64_t*)aligned_alloc( 32 , sizeof(uint64_t)*n_64*2 );
+	if( NULL == b_bc ) { printf("alloc fail.\n"); exit(-1); }
 
 #ifdef _PROFILE_
-    bm_start(&bm_bc);
+bm_start(&bm_bc);
 #endif
-    memcpy(a_bc, a, sizeof(uint64_t)*_n_64);
-    for (unsigned i = _n_64; i < n_64; i++) a_bc[i] = 0;
+	memcpy( a_bc , a , sizeof(uint64_t)*_n_64 );
+	for(unsigned i=_n_64;i<n_64;i++) a_bc[i] = 0;
+	//bc_to_lch_2( a_bc , n_64 );
+	bc_to_lch_2_unit256( a_bc , n_64 );
+		//for(unsigned i=n_64;i<n_64*2;i++) a_bc[i] = 0;
 
-    bc_to_lch_2_unit256(a_bc, n_64);
-
-    memcpy(b_bc, b, sizeof(uint64_t)*_n_64);
-    for (unsigned i = _n_64; i < n_64; i++) b_bc[i] = 0;
-
-    bc_to_lch_2_unit256(b_bc, n_64);
-
-#ifdef _PROFILE_
-    bm_stop(&bm_bc);
-#endif
-
-    unsigned n_terms = n_64;
-    unsigned log_n = __builtin_ctz(n_terms);
-    uint64_t * a_fx = (uint64_t*)aligned_alloc(32, sizeof(uint64_t) * 2 * n_terms);
-    if (NULL == a_fx) { printf("alloc fail.\n"); exit(-1); }
-    uint64_t * b_fx = (uint64_t*)aligned_alloc(32, sizeof(uint64_t) * 2 * n_terms);
-    if (NULL == b_fx) { printf("alloc fail.\n"); exit(-1); }
+	memcpy( b_bc , b , sizeof(uint64_t)*_n_64 );
+	for(unsigned i=_n_64;i<n_64;i++) b_bc[i] = 0;
+	//bc_to_lch_2( b_bc , n_64 );
+	bc_to_lch_2_unit256( b_bc , n_64 );
+		//for(unsigned i=n_64;i<n_64*2;i++) b_bc[i] = 0;
 
 #ifdef _PROFILE_
-    bm_start(&bm_tr);
-#endif
-    encode_128_half_input_zero(a_fx, a_bc, n_terms);
-    //encode( a_fx , a_bc , n_terms );
-
-    encode_128_half_input_zero(b_fx, b_bc, n_terms);
-    //encode( b_fx , b_bc , n_terms );
-
-#ifdef _PROFILE_
-    bm_stop(&bm_tr);
-#endif
-#ifdef _PROFILE_
-    bm_start(&bm_butterfly);
-#endif
-    btfy_128(b_fx, n_terms, 64 + log_n + 1);
-    btfy_128(a_fx, n_terms, 64 + log_n + 1);
-#ifdef _PROFILE_
-    bm_stop(&bm_butterfly);
+bm_stop(&bm_bc);
 #endif
 
+	unsigned n_terms = n_64;
+	unsigned log_n = __builtin_ctz( n_terms );
+	uint64_t * a_fx = (uint64_t*)aligned_alloc( 32 , sizeof(uint64_t)*2*n_terms );
+	if( NULL == a_fx ) { printf("alloc fail.\n"); exit(-1); }
+	uint64_t * b_fx = (uint64_t*)aligned_alloc( 32 , sizeof(uint64_t)*2*n_terms );
+	if( NULL == b_fx ) { printf("alloc fail.\n"); exit(-1); }
 
 #ifdef _PROFILE_
-    bm_start(&bm_pointmul);
+bm_start(&bm_tr);
 #endif
-    for (unsigned i = 0; i < n_terms; i++) gf2ext128_mul_sse((uint8_t *)&a_fx[i * 2], (uint8_t *)&a_fx[i * 2], (uint8_t*)& b_fx[i * 2]);
-#ifdef _PROFILE_
-    bm_stop(&bm_pointmul);
-#endif
+	encode_128_half_input_zero( a_fx , a_bc , n_terms );
+		//encode( a_fx , a_bc , n_terms );
+
+	encode_128_half_input_zero( b_fx , b_bc , n_terms );
+		//encode( b_fx , b_bc , n_terms );
 
 #ifdef _PROFILE_
-    bm_start(&bm_ibutterfly);
+bm_stop(&bm_tr);
 #endif
-    i_btfy_128(a_fx, n_terms, 64 + log_n + 1);
 #ifdef _PROFILE_
-    bm_stop(&bm_ibutterfly);
+bm_start(&bm_butterfly);
+#endif
+	btfy_128( b_fx , n_terms , 64+log_n+1 );
+	btfy_128( a_fx , n_terms , 64+log_n+1 );
+#ifdef _PROFILE_
+bm_stop(&bm_butterfly);
+#endif
+
+
+#ifdef _PROFILE_
+bm_start(&bm_pointmul);
+#endif
+	for(unsigned i=0;i<n_terms;i++) gf2ext128_mul_sse( (uint8_t *)&a_fx[i*2] , (uint8_t *)&a_fx[i*2] , (uint8_t*)& b_fx[i*2] );
+#ifdef _PROFILE_
+bm_stop(&bm_pointmul);
 #endif
 
 #ifdef _PROFILE_
-    bm_start(&bm_tr2);
+bm_start(&bm_ibutterfly);
 #endif
-    decode_128(b_fx, a_fx, n_terms);
+	i_btfy_128( a_fx , n_terms , 64+log_n+1 );
 #ifdef _PROFILE_
-    bm_stop(&bm_tr2);
+bm_stop(&bm_ibutterfly);
 #endif
 
 #ifdef _PROFILE_
-    bm_start(&bm_ibc);
+bm_start(&bm_tr2);
 #endif
-    //bc_to_mono_2( b_fx , 2*n_64 );
-    bc_to_mono_2_unit256(b_fx, 2 * n_64);
+	decode_128( b_fx , a_fx , n_terms );
 #ifdef _PROFILE_
-    bm_stop(&bm_ibc);
+bm_stop(&bm_tr2);
 #endif
 
-    for (unsigned i = 0; i < (2 * _n_64); i++) {
-        c[i] = b_fx[i];
-    }
+#ifdef _PROFILE_
+bm_start(&bm_ibc);
+#endif
+	//bc_to_mono_2( b_fx , 2*n_64 );
+	bc_to_mono_2_unit256( b_fx , 2*n_64 );
+#ifdef _PROFILE_
+bm_stop(&bm_ibc);
+#endif
 
-    free(a_bc);
-    free(b_bc);
-    free(a_fx);
-    free(b_fx);
+	for(unsigned i=0;i<(2*_n_64);i++) {
+		c[i] = b_fx[i];
+	}
 
+	free(a_bc);
+	free(b_bc);
+	free(a_fx);
+	free(b_fx);
 }
 
 
