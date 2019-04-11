@@ -11,7 +11,7 @@
 #include "bitpolymul2/defines.h"
 #include <cryptoTools/Common/CLP.h>
 
-#define TEST_RUN 20
+//#define TEST_RUN 20
 
 //#define _HAVE_GF2X_
 
@@ -48,6 +48,7 @@ int main(int argc, char ** argv)
 {
     oc::CLP cmd(argc, argv);
 
+    uint64_t TEST_RUN = cmd.getOr("t", 10);
     uint64_t len = (1ull << cmd.getOr("n", 16));
     //if (2 == argc) {
     //    int log = atoi(argv[1]);
@@ -111,8 +112,12 @@ int main(int argc, char ** argv)
     uint64_t chk = 0;
     for (uint64_t i = 0; i < TEST_RUN; i++)
     {
-        prng.get(poly1.data(), poly1.size());
-        prng.get(poly2.data(), poly2.size());
+        //prng.get(poly1.data(), poly1.size());
+        //prng.get(poly2.data(), poly2.size());
+        for (uint64_t q = 0; q < len; q++) { poly1[q] = q + 1 + i * i + 321434123377; }
+        for (uint64_t q = 0; q < len; q++) { poly2[q] = q + 2 + i * i + 463254234534; }
+
+
 
         auto back1 = poly1;
         auto back2 = poly2;
