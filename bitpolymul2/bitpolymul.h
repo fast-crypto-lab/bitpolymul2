@@ -74,7 +74,8 @@ namespace bpm
         void addEq(const FFTPoly& b);
 
 
-        void decode(span<u64> dest);
+        void decode(span<u64> dest, bool destructive = true);
+        void decode(span<u64> dest, span<u64> temp, bool destructive);
 
 
     };

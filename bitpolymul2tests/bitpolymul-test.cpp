@@ -191,8 +191,8 @@ int main(int argc, char ** argv)
         fft_12.mult(fft1, fft2);
         fft_13.mult(fft1, fft3);
 
-        fft_12.decode(poly_12);
-        fft_13.decode(poly_13);
+        fft_12.decode(poly_12, false);
+        fft_13.decode(poly_13, false);
 
         bpm::FFTPoly fft_12_13;
         fft_12_13.add(fft_13, fft_12);
