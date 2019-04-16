@@ -58,21 +58,29 @@ endif()
 
 #CFLAGS= -O3 -funroll-loops -mavx2 -mpclmul -std=gnu99                            -Wextra -Wall
 if(MSVC)
-    target_compile_options(bitpolymul2 PUBLIC  "/arch:AVX2")
+    target_compile_options(bitpolymul2 PUBLIC  "/Ox /arch:AVX /GL /LTCG")
  
 else(MSVC)
     target_compile_options(bitpolymul2 PUBLIC "-O3" "-funroll-loops" "-mavx2" "-mpclmul")
 endif(MSVC)
 
-
 set(libOTeDir "${CMAKE_CURRENT_SOURCE_DIR}/../../libOTe")
+set(cryptoToolsDir "${libOTeDir}/cryptoTools")
+set(cryptoToolsLib "${libOTeDir}/x64/release/cryptoTools.lib")
 
+
+if(NOT EXISTS "${cryptoToolsDir}")
+    message(FATAL_ERROR "cryptoTools does not exist at: ${cryptoToolsDir}" )    
+endif()
+
+if(NOT EXISTS "${cryptoToolsLib}")
+    message(FATAL_ERROR "lib cryptoTools does not exist at: ${cryptoToolsLib}" )    
+endif()
 
 # make projects that include bitpolymul2 use this as an include folder
 target_include_directories(bitpolymul2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
-target_include_directories(bitpolymul2 PUBLIC "${libOTeDir}/cryptoTools")
-
-target_link_libraries(bitpolymul2 PUBLIC "${libOTeDir}/x64/release/cryptoTools.lib")
+target_include_directories(bitpolymul2 PUBLIC "${cryptoToolsDir}")
+target_link_libraries(bitpolymul2 PUBLIC "${cryptoToolsLib}")
 
 
 

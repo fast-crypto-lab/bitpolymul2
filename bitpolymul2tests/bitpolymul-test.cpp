@@ -10,6 +10,7 @@
 
 #include "bitpolymul2/defines.h"
 #include <cryptoTools/Common/CLP.h>
+#include <cryptoTools/Common/Timer.h>
 
 //#define TEST_RUN 20
 
@@ -112,6 +113,18 @@ int main(int argc, char ** argv)
             a[i] ^= b[i];
         return a;
     };
+
+    if (cmd.isSet("timer"))
+    {
+        oc::Timer timer;
+        timer.setTimePoint("start");
+        for (uint64_t i = 0; i < TEST_RUN; i++)
+        {
+            bm_func2(rPoly1.data(), poly2.data(), poly1.data(), len);
+        }
+        timer.setTimePoint("end");
+        std::cout <<"timer " << timer << std::endl;
+    }
 
     uint64_t fail_count = 0;
     uint64_t chk = 0;
