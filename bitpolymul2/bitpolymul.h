@@ -24,7 +24,7 @@ along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 #include <stdint.h>
 #include <cryptoTools/Common/Defines.h>
 #include <vector>
-
+#include <boost/align/aligned_allocator.hpp>
 
 void bitpolymul_simple(uint64_t * c, const uint64_t * a, const uint64_t * b, unsigned n_64);
 
@@ -39,6 +39,11 @@ void bitpolymul(uint64_t * c, const uint64_t * a, const uint64_t * b, uint64_t n
 
 namespace bpm
 {
+
+    template <typename T>
+    using aligned_vector = std::vector<T, boost::alignment::aligned_allocator<T, 32>>;
+
+
     template<typename T>
     using span = oc::span<T>;
 
@@ -60,7 +65,7 @@ namespace bpm
         }
 
         u64 mN = 0, mNPow2 = 0;
-        std::vector<u64> mPoly;
+        aligned_vector<u64> mPoly;
 
         void resize(u64 n);
 

@@ -57,16 +57,32 @@ endif()
 
 
 #CFLAGS= -O3 -funroll-loops -mavx2 -mpclmul -std=gnu99                            -Wextra -Wall
-if(MSVC)
-    target_compile_options(bitpolymul2 PUBLIC  "/Ox /arch:AVX /GL /LTCG")
- 
-else(MSVC)
-    target_compile_options(bitpolymul2 PUBLIC "-O3" "-funroll-loops" "-mavx2" "-mpclmul")
-endif(MSVC)
-
 set(libOTeDir "${CMAKE_CURRENT_SOURCE_DIR}/../../libOTe")
 set(cryptoToolsDir "${libOTeDir}/cryptoTools")
-set(cryptoToolsLib "${libOTeDir}/x64/release/cryptoTools.lib")
+
+if(MSVC)
+
+    target_compile_options(bitpolymul2 PUBLIC  "/arch:AVX2" "/GL" "/LTCG")
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR 
+       "${CMAKE_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO" )
+        set(cryptoToolsLib "${libOTeDir}/x64/release/cryptoTools.lib")
+        target_compile_options(bitpolymul2 PUBLIC  "/O2")
+    else()
+        set(cryptoToolsLib "${libOTeDir}/x64/debug/cryptoTools.lib")
+    endif()
+
+    set(relicLib "${libOTeDir}/../relic/lib/${CMAKE_BUILD_TYPE}/relic_s.lib")
+
+else(MSVC)
+    set(cryptoToolsLib "${libOTeDir}/lib/libcryptoTools.a")
+
+    target_compile_options(bitpolymul2 PUBLIC "-O3" "-funroll-loops" "-mavx2" "-mpclmul")
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR 
+       "${CMAKE_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO" )
+        target_compile_options(bitpolymul2 PUBLIC  "-O3")
+    endif()
+endif(MSVC)
+
 
 
 if(NOT EXISTS "${cryptoToolsDir}")
@@ -80,7 +96,7 @@ endif()
 # make projects that include bitpolymul2 use this as an include folder
 target_include_directories(bitpolymul2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_include_directories(bitpolymul2 PUBLIC "${cryptoToolsDir}")
-target_link_libraries(bitpolymul2 PUBLIC "${cryptoToolsLib}")
+target_link_libraries(bitpolymul2 PUBLIC "${cryptoToolsLib}" "${relicLib}")
 
 
 
