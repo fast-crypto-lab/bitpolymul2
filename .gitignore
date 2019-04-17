@@ -3,3 +3,6 @@ CMakeSettings.json
 bin/
 lib/
 linux/
+Makefile
+*.cmake
+*/CMakeFiles/

@@ -35,6 +35,10 @@ message(STATUS "Option: AVX = ${AVX}")
 option(AVX2 "Enable AVX2" ON)
 message(STATUS "Option: AVX2 = ${AVX2}")
 
+
+message(STATUS "Option: CMAKE_BUILD_TYPE = ${CMAKE_BUILD_TYPE}\n\tRelease\n\tDebug\n\tRELWITHDEBINFO")
+
+
 if(DEBUG)
     target_compile_options(bitpolymul2 PUBLIC "-D_DEBUG_")
 endif()
@@ -63,12 +67,14 @@ set(cryptoToolsDir "${libOTeDir}/cryptoTools")
 if(MSVC)
 
     target_compile_options(bitpolymul2 PUBLIC  "/arch:AVX2" "/GL" "/LTCG")
-    if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR 
-       "${CMAKE_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO" )
+
+    
+
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        set(cryptoToolsLib "${libOTeDir}/x64/debug/cryptoTools.lib")
+    else()
         set(cryptoToolsLib "${libOTeDir}/x64/release/cryptoTools.lib")
         target_compile_options(bitpolymul2 PUBLIC  "/O2")
-    else()
-        set(cryptoToolsLib "${libOTeDir}/x64/debug/cryptoTools.lib")
     endif()
 
     set(relicLib "${libOTeDir}/../relic/lib/${CMAKE_BUILD_TYPE}/relic_s.lib")
@@ -98,7 +104,7 @@ target_include_directories(bitpolymul2 PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_include_directories(bitpolymul2 PUBLIC "${cryptoToolsDir}")
 target_link_libraries(bitpolymul2 PUBLIC "${cryptoToolsLib}" "${relicLib}")
 
-
+message(STATUS "cryptoToolsLib = ${cryptoToolsLib}")
 
 
 ## Boost
