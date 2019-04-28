@@ -334,6 +334,11 @@ void decode_128( uint64_t * rfx , const uint64_t * fx , unsigned n_fx_128b )
 
 	const __m128i * fx_128 = (__m128i*) fx;
 	__m256i * rfx_256 = (__m256i*) rfx;
+    if (uint64_t(rfx_256) % 32)
+    {
+        throw RTE_LOC;
+    }
+
 	unsigned n_fx_256b = n_fx_128b/2;
 	unsigned num = n_fx_256b/128;
 	__m256i temp[128];

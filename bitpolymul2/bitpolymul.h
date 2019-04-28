@@ -79,9 +79,13 @@ namespace bpm
         void addEq(const FFTPoly& b);
 
 
-        void decode(span<u64> dest, bool destructive = true);
-        void decode(span<u64> dest, span<u64> temp, bool destructive);
+        struct DecodeCache
+        {
+            aligned_vector<u64> mTemp, mTemp2;
+        };
 
+        void decode(span<u64> dest, bool destructive = true);
+        void decode(span<u64> dest, DecodeCache& cache, bool destructive);
 
     };
 }
