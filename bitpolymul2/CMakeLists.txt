@@ -82,10 +82,10 @@ if(MSVC)
 else(MSVC)
     set(cryptoToolsLib "${libOTeDir}/lib/libcryptoTools.a")
 
-    target_compile_options(bitpolymul2 PUBLIC "-mavx2" "-mpclmul")
+    target_compile_options(bitpolymul2 PUBLIC "-mavx2" "-mpclmul" "-march=native")
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Release" OR 
        "${CMAKE_BUILD_TYPE}" STREQUAL "RELWITHDEBINFO" )
-        target_compile_options(bitpolymul2 PUBLIC  "-O3" "-funroll-loops")
+        target_compile_options(bitpolymul2 PUBLIC  "-O3" "-funroll-loops" "-fno-rtti")# "-fno-exceptions" 
     endif()
 endif(MSVC)
 
