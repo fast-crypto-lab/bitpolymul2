@@ -1,3 +1,4 @@
+#pragma once
 /*
 Copyright (C) 2017 Ming-Shing Chen
 
@@ -17,19 +18,17 @@ You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _BUTTERFLY_NET_H_
-#define _BUTTERFLY_NET_H_
+
 
 
 #include <stdint.h>
+#include <vector>
+#include "bpmDefines.h"
 
+namespace bpm
+{
+    void bitpolymul_2_128(uint64_t* c, const uint64_t* a, const uint64_t* b, u64 n_64);
+    void bitpolymul_2_64(uint64_t* c, const uint64_t* a, const uint64_t* b, u64 n_64);
 
+}
 
-void butterfly_net_half_inp_clmul( uint64_t * fx , unsigned n_fx );
-
-void i_butterfly_net_clmul( uint64_t * fx , unsigned n_fx );
-
-
-
-
-#endif

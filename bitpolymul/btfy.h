@@ -1,3 +1,4 @@
+#pragma once
 /*
 Copyright (C) 2017 Ming-Shing Chen
 
@@ -17,31 +18,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <stdint.h>
 
-#ifndef _TRUNC_BTFY_TAB_H_
-#define _TRUNC_BTFY_TAB_H_
+#include "bpmDefines.h"
 
-#include "stdint.h"
+namespace bpm {
 
+    void btfy_128(uint64_t* fx, u64 n_fx, u64 scalar_a);
 
-
-
-
-extern uint64_t beta_mul_64 [];
-
-extern uint64_t i_beta_mul_64 [];
+    void i_btfy_128(uint64_t* fx, u64 n_fx, u64 scalar_a);
 
 
+    void btfy_64(uint64_t* fx, u64 n_fx, u64 scalar_a);
 
-extern uint64_t beta_mul_64_bm4r [];
-
-extern uint64_t i_beta_mul_64_bm4r [];
-
-extern uint64_t beta_mul_64_bm4r_ext_8 [];
-
-extern uint64_t i_beta_mul_64_bm4r_ext_8 [];
-
-
+    void i_btfy_64(uint64_t* fx, u64 n_fx, u64 scalar_a);
+}
 
 
 

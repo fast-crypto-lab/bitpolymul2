@@ -6,3 +6,4 @@ linux/
 Makefile
 *.cmake
 */CMakeFiles/
+out/

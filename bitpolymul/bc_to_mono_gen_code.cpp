@@ -16,8 +16,11 @@ GNU Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
-#include "bc_to_gen_code.h"
+ 
+//#pragma message("here ------------------------------");
 
+#include "bc_to_gen_code.h"
+namespace bpm{
 void bc_to_mono_256_16(__m256i* poly, int logn){
 for(int offset=(1<<1);offset<(1<<logn);offset+=(1<<(1+1))){
     xorEq(poly[offset-1],poly[offset]);
@@ -472,5 +475,6 @@ for(int i=offset+(1<<30)-1069547520;i<=offset+(1<<30)-1-1056964608;++i)xorEq(pol
 for(int i=offset+(1<<30)-1056964608;i<=offset+(1<<30)-1-1006632960;++i)xorEq(poly[i],poly[i+805306368],poly[i+1006632960]);
 for(int i=offset+(1<<30)-1006632960;i<=offset+(1<<30)-1-805306368;++i)xorEq(poly[i],poly[i+805306368]);
 
+}
 }
 }

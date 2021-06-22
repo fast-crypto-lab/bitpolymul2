@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+
+include("${CMAKE_CURRENT_LIST_DIR}/bitpolymulTargets.cmake")
+
+get_target_property(bitpolymul_INCLUDE_DIRS visa::bitpolymul INTERFACE_INCLUDE_DIRECTORIES)
+
+get_target_property(bitpolymul_LIBRARIES visa::bitpolymul LOCATION)
+
+message("bitpolymul_INCLUDE_DIRS=${bitpolymul_INCLUDE_DIRS}")
+message("bitpolymul_LIBRARIES=${bitpolymul_LIBRARIES}")

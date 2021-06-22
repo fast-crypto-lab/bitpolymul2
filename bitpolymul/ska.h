@@ -1,3 +1,4 @@
+#pragma once
 /*
 Copyright (C) 2017 Ming-Shing Chen
 
@@ -17,34 +18,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _ENCODE_H_
-#define _ENCODE_H_
 
-
-#include <stdint.h>
-
-
-
-
-
-
-void encode_128_half_input_zero( uint64_t * rfx , const uint64_t * fx , unsigned n_fx_128b );
-
-void encode_128( uint64_t * rfx , const uint64_t * fx , unsigned n_fx_128b );
-
-void decode_128( uint64_t * rfx , const uint64_t * fx , unsigned n_fx_128b );
-
-
-
-void encode_64_half_input_zero( uint64_t * rfx , const uint64_t * fx , unsigned n_fx );
-
-void encode_64( uint64_t * rfx , const uint64_t * fx , unsigned n_fx );
-
-void decode_64( uint64_t * rfx , const uint64_t * fx , unsigned n_fx );
-
-
-
-
-
-
-#endif
+namespace bpm {
+     inline
+        unsigned get_s_k_a_cantor(unsigned k, unsigned a) { return (a >> k); }
+}

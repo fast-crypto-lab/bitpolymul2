@@ -1,13 +1,11 @@
-project(bitpolymul2)
+cmake_minimum_required(VERSION 3.15)
+project(bitpolymul VERSION 1.0.0)
 
-	if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
-	   SET(CMAKE_BUILD_TYPE Release)
-	endif()
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+	SET(CMAKE_BUILD_TYPE Release)
+endif()
+	
 
-	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/bin)
-	set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib)
-	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_HOME_DIRECTORY}/lib/${CMAKE_BUILD_TYPE})
+add_subdirectory(bitpolymul)
 
-
-add_subdirectory(bitpolymul2)
-add_subdirectory(bitpolymul2tests)
+include("cmake/install.cmake")
