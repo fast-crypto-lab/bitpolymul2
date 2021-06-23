@@ -10,6 +10,7 @@
 #ifdef _MSC_VER
 #include <intrin.h>
 #include <malloc.h>
+#endif
 
 //#define (x) 
 namespace bpm
@@ -24,6 +25,8 @@ namespace bpm
 	using i16 = std::int16_t;
 	using i8 = std::int8_t;
 
+
+#ifdef _MSC_VER
 	inline int __builtin_ctz(uint32_t x) {
 		unsigned long ret;
 		_BitScanForward(&ret, x);
