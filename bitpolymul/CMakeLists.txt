@@ -5,7 +5,7 @@ add_library(bitpolymul STATIC ${SRCS})
 
 if(MSVC)
 else()
-    target_compile_options(bitpolymul PRIVATE -mavx2 -mpclmul)
+    target_compile_options(bitpolymul PRIVATE -mavx2 -mpclmul -std=c++11)
 endif()
 
 # make projects that include bitpolymul use this as an include folder
