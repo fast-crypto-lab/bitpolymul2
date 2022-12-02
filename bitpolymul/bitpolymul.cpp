@@ -33,7 +33,7 @@ namespace bpm
     Aligned alignedNew(u64 n)
     {
         u64 aligment = sizeof(__m256);
-        std::unique_ptr<u64> uPtr(new u64[n + aligment]);
+        std::unique_ptr<u64[]> uPtr(new u64[n + aligment]);
         u8* u8ptr = (u8*)uPtr.get();
 
         auto offset = u64(u8ptr) % aligment;
