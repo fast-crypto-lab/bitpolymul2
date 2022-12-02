@@ -17,7 +17,7 @@ namespace bpm
 
     struct Aligned
     {
-        std::unique_ptr<u64> uPtr;
+        std::unique_ptr<u64[]> uPtr;
         u64* ptr;
         u64* data()
         {
