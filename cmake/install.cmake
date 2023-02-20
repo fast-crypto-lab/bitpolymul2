@@ -1,20 +1,15 @@
 
-
-
-
-
-
 #############################################
 #            Install                        #
 #############################################
 
 
-#configure_file("${CMAKE_CURRENT_LIST_DIR}/bitpolymulDepHelper.cmake" "bitpolymulDepHelper.cmake" )
-
 # make cache variables for install destinations
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
 
+configure_file("${CMAKE_CURRENT_LIST_DIR}/../cmake/configVersion.cmake.in" "bitpolymulConfigVersion.cmake" COPYONLY)
+configure_file("${CMAKE_CURRENT_LIST_DIR}/../cmake/buildOptions.cmake.in"  "bitpolymulBuildOptions.cmake")
 
 # generate the config file that is includes the exports
 configure_package_config_file(
@@ -31,18 +26,11 @@ endif()
 
 set_property(TARGET bitpolymul PROPERTY VERSION ${bitpolymul_VERSION})
 
-# generate the version file for the config file
-write_basic_package_version_file(
-  "${CMAKE_CURRENT_BINARY_DIR}/bitpolymulConfigVersion.cmake"
-  VERSION "${bitpolymul_VERSION_MAJOR}.${bitpolymul_VERSION_MINOR}.${bitpolymul_VERSION_PATCH}"
-  COMPATIBILITY AnyNewerVersion
-)
-
 # install the configuration file
 install(FILES
+          "${CMAKE_CURRENT_BINARY_DIR}/bitpolymulBuildOptions.cmake"
           "${CMAKE_CURRENT_BINARY_DIR}/bitpolymulConfig.cmake"
           "${CMAKE_CURRENT_BINARY_DIR}/bitpolymulConfigVersion.cmake"
-          #"${CMAKE_CURRENT_BINARY_DIR}/bitpolymulDepHelper.cmake"
         DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/bitpolymul
 )
 
