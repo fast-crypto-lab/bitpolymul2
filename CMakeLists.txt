@@ -5,7 +5,7 @@ if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
 	SET(CMAKE_BUILD_TYPE Release)
 endif()
 	
-include("cmake/buildOptions.h")
+include("cmake/buildOptions.cmake")
 
 add_subdirectory(bitpolymul)
 
