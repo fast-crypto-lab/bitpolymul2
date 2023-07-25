@@ -1,3 +1,4 @@
+#pragma once
 /*
 Copyright (C) 2017 Ming-Shing Chen
 
@@ -17,33 +18,25 @@ You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _GF2128_CANTOR_ISO_H_
-#define _GF2128_CANTOR_ISO_H_
-
 
 #include <stdint.h>
+#include "bpmDefines.h"
+
+namespace bpm {
 
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
+    typedef uint64_t bc_sto_t;
+    void bc_to_lch_256_30_12(__m256i* poly, int logn);
+    void bc_to_lch_256_19_17(__m256i* poly, int logn);
+    void bc_to_lch_256_16(__m256i* poly, int logn);
+    void bc_to_mono_256_16(__m256i* poly, int logn);
+    void bc_to_mono_256_19_17(__m256i* poly, int logn);
+    void bc_to_mono_256_30_20(__m256i* poly, int logn);
 
+    void bc_to_lch_2_unit256(bc_sto_t* poly, u64 n_terms);
 
-extern uint64_t gf2128toCantor[];
+    void bc_to_mono_2_unit256(bc_sto_t* poly, u64 n_terms);
 
-extern uint64_t gfCantorto2128[];
-
-extern uint64_t gf2128toCantor_4R[];
-
-extern uint64_t gfCantorto2128_4R[];
-
-
-extern uint64_t gfCantorto2128_8R[];
-
-
-#ifdef  __cplusplus
 }
-#endif
 
 
-#endif

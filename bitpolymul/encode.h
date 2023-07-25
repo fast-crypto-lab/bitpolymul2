@@ -1,3 +1,4 @@
+#pragma once
 /*
 Copyright (C) 2017 Ming-Shing Chen
 
@@ -17,26 +18,26 @@ You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _GF264_CANTOR_ISO_H_
-#define _GF264_CANTOR_ISO_H_
+
 
 
 #include <stdint.h>
 
-
-#ifdef  __cplusplus
-extern  "C" {
-#endif
+#include "bpmDefines.h"
 
 
-extern uint64_t gfCantorto264[];
-
-extern uint64_t gfCantorto264_8R[];
+namespace bpm {
 
 
-#ifdef  __cplusplus
+    void encode_128_half_input_zero(uint64_t* rfx, const uint64_t* fx, u64 n_fx_128b);
+
+    void decode_128(uint64_t* rfx, const uint64_t* fx, u64 n_fx_128b);
+
+    void encode_64_half_input_zero(uint64_t* rfx, const uint64_t* fx, u64 n_fx);
+
+    void decode_64(uint64_t* rfx, const uint64_t* fx, u64 n_fx);
+
+
 }
-#endif
 
 
-#endif

@@ -1,3 +1,4 @@
+#pragma once
 /*
 Copyright (C) 2017 Ming-Shing Chen
 
@@ -17,53 +18,21 @@ You should have received a copy of the GNU Lesser General Public License
 along with BitPolyMul.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#ifndef _BC_H_
-#define _BC_H_
-
 #include <stdint.h>
 
+#include "bpmDefines.h"
+
+namespace bpm {
+
+    void btfy_128(uint64_t* fx, u64 n_fx, u64 scalar_a);
+
+    void i_btfy_128(uint64_t* fx, u64 n_fx, u64 scalar_a);
 
 
-#ifdef  __cplusplus
-extern  "C" {
-#endif
+    void btfy_64(uint64_t* fx, u64 n_fx, u64 scalar_a);
 
-
-typedef uint64_t bc_sto_t;
-
-
-void bc_to_lch( bc_sto_t * poly , unsigned n_terms );
-
-void bc_to_mono( bc_sto_t * poly , unsigned n_terms );
-
-
-void bc_to_lch_128( bc_sto_t * poly , unsigned n_terms );
-
-void bc_to_mono_128( bc_sto_t * poly , unsigned n_terms );
-
-
-void bc_to_lch_256( bc_sto_t * poly , unsigned n_terms );
-
-void bc_to_mono_256( bc_sto_t * poly , unsigned n_terms );
-
-
-
-void bc_to_lch_2( bc_sto_t * poly , unsigned n_terms );
-
-void bc_to_mono_2( bc_sto_t * poly , unsigned n_terms );
-
-
-void bc_to_lch_2_unit256( bc_sto_t * poly , unsigned n_terms );
-
-void bc_to_mono_2_unit256( bc_sto_t * poly , unsigned n_terms );
-
-
-
-#ifdef  __cplusplus
+    void i_btfy_64(uint64_t* fx, u64 n_fx, u64 scalar_a);
 }
-#endif
 
 
 
-#endif
